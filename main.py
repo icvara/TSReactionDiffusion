@@ -8,9 +8,10 @@ from model import *
 from diffusion import *
 from grow import *
 from  easyplot import *
-
+from TuringInstability import*
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import pandas as pd
 
 
 #check dx???
@@ -152,6 +153,31 @@ def init_colony(values,width):
 	return G,R,A,C,D
 
 
+
+    
+def load(name,parlist):
+    p= np.loadtxt(name+"_par.out")
+    tutype= np.loadtxt(name+"_turingtype.out")
+
+    namelist=[]
+    for i,par in enumerate(parlist):
+        namelist.append(parlist[i]['name'])
+    df = pd.DataFrame(p, columns = namelist)
+    df['tutype']=tutype
+    return p,df
+
+
+def pars_to_dict(pars,parlist):
+### This function is not necessary, but it makes the code a bit easier to read,
+### it transforms an array of pars e.g. p[0],p[1],p[2] into a
+### named dictionary e.g. p['k0'],p['B'],p['n'],p['x0']
+### so it is easier to follow the parameters in the code
+    dict_pars = {}
+    for ipar,par in enumerate(parlist):
+        dict_pars[par['name']] = pars[ipar] 
+    return dict_pars
+##plotting part
+
 '''
 ================================================================================================================00
 
@@ -160,176 +186,6 @@ par setup HERE
 ======================================================================================================================
 
 '''
-par_TSL={
-	'beta_green':0,
-	'alpha_green':1,#.001,#0.001,
-	'K_ahl_green':0,
-	'n_ahl_green':2,
-	'delta_green':1,
-	'K_GREEN':1,
-	'n_GREEN':2,
-	'beta_red':1,
-	'alpha_red':0.001,
-	'K_ahl_red':1,
-	'n_ahl_red':2,
-	'delta_red':1.,
-	'K_RED':1.67,
-	'n_RED':2,
-	'beta_ahl':0,
-	'K_ahl':0,
-	'n_ahl':2,
-	'delta_ahl':1,
-    'D_ahl':1,#0.1,
-    'K_IPTG':1
-}
-
-par_TSXL={
-	'beta_green':0,
-	'alpha_green':1,#.001,#0.001,
-	'K_ahl_green':0,
-	'n_ahl_green':2,
-	'delta_green':1,
-	'K_GREEN':1,
-	'n_GREEN':2,
-	'beta_red':1,
-	'alpha_red':0.001,
-	'K_ahl_red':1,
-	'n_ahl_red':2,
-	'delta_red':1.,
-	'K_RED':1.67,
-	'n_RED':2,
-	'beta_ahl':1,
-	'K_ahl':0,
-	'n_ahl':2,
-	'delta_ahl':1,
-    'D_ahl':1,#0.1,
-    'K_IPTG':1
-}
-
-
-par_TSLT={
-	'beta_green':1,
-	'alpha_green':.001,#0.001,
-	'K_ahl_green':2,
-	'n_ahl_green':2,
-	'delta_green':1,
-	'K_GREEN':1,
-	'n_GREEN':2,
-	'beta_red':1,
-	'alpha_red':0.001,
-	'K_ahl_red':1,
-	'n_ahl_red':2,
-	'delta_red':1.,
-	'K_RED':1.67,
-	'n_RED':2,
-	'beta_ahl':0,
-	'K_ahl':0,
-	'n_ahl':2,
-	'delta_ahl':1,
-    'D_ahl':1,#0.1,
-    'K_IPTG':1
-}
-
-
-
-
-
-
-par_TSLT_mushroom={
-	'beta_green':1,
-	'alpha_green':.001,#0.001,
-	'K_ahl_green':2.33,
-	'n_ahl_green':3,
-	'delta_green':1,
-	'K_GREEN':1,
-	'n_GREEN':2,
-	'beta_red':1,
-	'alpha_red':0.001,
-	'K_ahl_red':1,
-	'n_ahl_red':0.6,
-	'delta_red':1.05,
-	'K_RED':1.33,
-	'n_RED':2,
-	'beta_ahl':0,
-	'K_ahl':0,
-	'n_ahl':2,
-	'delta_ahl':1,
-    'D_ahl':1,#0.1,
-    'K_IPTG':1
-}
-
-
-
-par_TSXLT={
-	'beta_green':1,
-	'alpha_green':.001,#0.001,
-	'K_ahl_green':1.5,
-	'n_ahl_green':2,
-	'delta_green':1,
-	'K_GREEN':1,
-	'n_GREEN':2,
-	'beta_red':1,
-	'alpha_red':0.001,
-	'K_ahl_red':0.5,
-	'n_ahl_red':2,
-	'delta_red':1.,
-	'K_RED':2,
-	'n_RED':2,
-	'beta_ahl':1,
-	'K_ahl':0,
-	'n_ahl':2,
-	'delta_ahl':1,
-    'D_ahl':1,#0.1,
-    'K_IPTG':1
-}
-
-
-par_TSXLT_mushroom={
-	'beta_green':1,
-	'alpha_green':.001,#0.001,
-	'K_ahl_green':0.67,
-	'n_ahl_green':1.28,
-	'delta_green':1,
-	'K_GREEN':1,
-	'n_GREEN':2,
-	'beta_red':1,
-	'alpha_red':0.001,
-	'K_ahl_red':1,
-	'n_ahl_red':0.6,
-	'delta_red':1.05,
-	'K_RED':1.33,
-	'n_RED':2,
-	'beta_ahl':1,
-	'K_ahl':0,
-	'n_ahl':2,
-	'delta_ahl':1,
-    'D_ahl':1,#0.1,
-    'K_IPTG':1
-}
-
-par_TSXLT_mushroom2={
-	'beta_green':1,
-	'alpha_green':.001,#0.001,
-	'K_ahl_green':0.67,
-	'n_ahl_green':1.28,
-	'delta_green':1,
-	'K_GREEN':1,
-	'n_GREEN':2,
-	'beta_red':1,
-	'alpha_red':0.001,
-	'K_ahl_red':1,
-	'n_ahl_red':3,
-	'delta_red':1.2,
-	'K_RED':1.33,
-	'n_RED':2,
-	'beta_ahl':1,
-	'K_ahl':0,
-	'n_ahl':2,
-	'delta_ahl':1,
-    'D_ahl':1,#0.1,
-    'K_IPTG':1
-}
-
 
 
 par0={
@@ -547,7 +403,7 @@ stop
 #screen of par space here
 #===================================================
 
-
+'''
 par=par0
 par=par0
 par['beta_red']=1
@@ -606,7 +462,7 @@ plt.show()
 
 
 stop
-
+'''
 
 #bifu plot
 '''
@@ -641,6 +497,7 @@ plt.show()
 ======================================================================================================================
 '''
 
+'''
 size=10 #mm 10-1
 dx=0.1
 width=int(size/dx)
@@ -725,12 +582,46 @@ plt.show()
 
 stop
 
-'''
-plot_crossection(av,-1,int(width/2),axs,5,1)
-plot_crosstime(av,int(width/2),axs,5,0)
+
+#plot_crossection(av,-1,int(width/2),axs,5,1)
+#plot_crosstime(av,int(width/2),axs,5,0)
 '''
 
 
+
+
+'''
+===========================================================================
+
+par space here
+
+===========================================================================
+'''
+filename="MAP_TuringInstability/test"
+p,df=load(filename,parlist)
+
+
+p0=pars_to_dict(p[99],parlist)
+p0=addfixedpar(p0)
+
+A0=np.zeros(1)
+e= TuringInstability(A0,p0,20)
+
+ttype=getTuringinstability(p0,5)
+print(ttype)
+
+plt.plot(e[0,0,0,:,:],'g')
+plt.plot(e[0,0,1,:,:],'r')
+plt.plot(e[0,0,2,:,:],'b')
+plt.plot(e[0,0,3,:,:],'y')
+plt.plot(e[0,0,4,:,:],'k')
+#plt.ylim(-0.001,0.001)
+plt.yscale('symlog')
+
+
+plt.show()
+
+stop
 
 
 

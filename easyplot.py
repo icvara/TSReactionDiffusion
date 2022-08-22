@@ -363,8 +363,8 @@ def monostable_plot(A0,par,axs,i,j,k,p):
 
 	axs[i,j].set_yticks(indextick)
 	axs[i,j].set_xticks(indextick)
-	axs[i,j].set_yticklabels(np.round(k[indextick],2), fontsize=6 ,fontname=font)
-	axs[i,j].set_xticklabels(np.round(A0[indextick],3),rotation=90,fontsize=6 ,fontname=font)
+	axs[i,j].set_yticklabels(np.round(k[indextick],2), fontsize=6 )
+	axs[i,j].set_xticklabels(np.round(A0[indextick],3),rotation=90,fontsize=6 )
 
 	'''
 	axs[i,j].set_yticks(np.arange(len(k)))
@@ -390,11 +390,11 @@ need to fuse the two and improve them in one future
 def niceaxis(axs,x,y,p3,px,py,kx):
 		#axs[x,y].set_ylim(-0.1,1.1)
 		if x==0:
-			axs[x,y].set_title(str(np.round(py,2)),fontsize=8,fontname=font)
+			axs[x,y].set_title(str(np.round(py,2)),fontsize=8)
 		
 
 		if y==0:
-			axs[x,y].set_ylabel(p3,fontsize=8, fontname=font)
+			axs[x,y].set_ylabel(p3,fontsize=8)
 			if x!=len(kx)-1:
 					axs[x,y].set_xticks([])
 					axs[x,y].set_xticklabels([])
@@ -411,7 +411,7 @@ def niceaxis(axs,x,y,p3,px,py,kx):
 			axs[x,y].set_yticks([])
 			axs[x,y].set_yticklabels([])
 			axs[x,y] = axs[x,y].twinx()
-			axs[x,y].set_ylabel(str(np.round(px,2)),fontsize=8,fontname=font)
+			axs[x,y].set_ylabel(str(np.round(px,2)),fontsize=8)
 			axs[x,y].set_yticks([])
 			axs[x,y].set_yticklabels([])
 			if x!=len(kx)-1:
@@ -431,11 +431,11 @@ def niceaxis(axs,x,y,p3,px,py,kx):
 def niceaxis2(axs,x,y,p3,px,py,kx,ky):
 		#axs[x,y].set_ylim(-0.1,1.1)
 		if x==0:
-			axs[x,y].set_title(str(np.round(py,2)),fontsize=8,fontname=font)
+			axs[x,y].set_title(str(np.round(py,2)),fontsize=8)
 		
 
 		if y==0:
-			axs[x,y].set_ylabel(str(np.round(px,3)),fontsize=8, fontname=font)
+			axs[x,y].set_ylabel(str(np.round(px,3)),fontsize=8)
 			if x!=len(kx)-1:
 					axs[x,y].set_xticks([])
 					axs[x,y].set_xticklabels([])
