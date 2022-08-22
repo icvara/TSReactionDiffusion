@@ -10,8 +10,12 @@ import numpy as np
 import time
 import multiprocessing
 from functools import partial
-import random
+from random import choices, seed, random
 from model import *
+import os
+from scipy.stats import norm, uniform, multivariate_normal
+
+
 
 
 
@@ -25,10 +29,8 @@ from scipy.optimize import brentq
 import pandas as pd
 '''
 
-initdist=1000000000
-finaldist=100.
-
 version="MAP_TuringInstability"
+name="test"
 
 if os.path.isdir(version) is False: ## if 'smc' folder does not exist:
         os.mkdir(version) ## create it, the output will go there
@@ -77,13 +79,7 @@ def addfixedpar(par):
 
 
 
-def choosepar(parlist):
-    #choose random par in the defined range
-    samplepar=[]
-    for ipar,par in enumerate(parlist):
-        samplepar.append(random.uniform(par['lower_limit'], par['upper_limit']))
-   # p=pars_to_dict(samplepar,parlist)
-    return np.array(samplepar)
+
 
 
 def pars_to_dict(pars,parlist):
@@ -95,7 +91,6 @@ def pars_to_dict(pars,parlist):
     for ipar,par in enumerate(parlist):
         dict_pars[par['name']] = pars[ipar] 
     return dict_pars
-
 
 
 
@@ -161,13 +156,29 @@ def choosepar(parlist):
     #choose random par in the defined range
     samplepar=[]
     for ipar,par in enumerate(parlist):
-        samplepar.append(random.uniform(par['lower_limit'], par['upper_limit']))
+         samplepar.append(uniform.rvs(loc = par['lower_limit'],
+                                 scale = par['upper_limit']-par['lower_limit']))
    # p=pars_to_dict(samplepar,parlist)
-    return np.array(samplepar)
+    return samplepar
+
+
+def calculatePar(parlist, iter):
+  #selectpar=[]
+   seed() # setting random seeds for each thread/process to avoid having the same random sequence in each thread
+   np.random.seed()
+   evaluated_distances = []
+   tutype=0
+   while tutype<1:
+         proposed_pars = choosepar(parlist)
+         p=pars_to_dict(proposed_pars,parlist)
+         tutype = getTuringinstability(p)
+
+
+   return proposed_pars,tutype
+
+
 
 def GeneratePars(parlist, ncpus,Npars=1000):
-    #@EO: to compare the 2 versions, set the seed
-    #np.random.seed(0)
 
     ## Call to function GeneratePar in parallel until Npars points are accepted
     trials = 0
@@ -187,14 +198,7 @@ def GeneratePars(parlist, ncpus,Npars=1000):
     return(newparlist,turingtype)
 
 
-def calculatePar(parlist, iter):
-  #selectpar=[]
-  newpar=choosepar(parlist)    
-  p=pars_to_dict(newpar,parlist)
-  tutype = getTuringinstability(p)
-  #if tu >0:
-    #selectpar.append(newpar)
-  return newpar,tutype
+
 
 
 def load(name,parlist):
@@ -215,5 +219,5 @@ def run(name,Npars=5000,ncpus=40):
     np.savetxt(version +"/"+name+'_par.out', par)
 
 
-print(tutype)
-run("test",10,ncpus=1)
+
+run(name,Npars=100,ncpus=40)
