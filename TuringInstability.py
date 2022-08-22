@@ -127,8 +127,8 @@ def getTuringinstability(par,n=100,model="TSXLT"):
    3: oscillation becomes stable
 
    '''
-   oscil=np.apply_along_axis(isOscillation,3,seeD)
-   stab=np.apply_along_axis(isStability,3,seeD)
+   oscil=np.apply_along_axis(isOscillation,4,seeD)
+   stab=np.apply_along_axis(isStability,4,seeD)
 
    if np.any(stab==1):
       indexa=np.where(stab==1)

@@ -304,10 +304,20 @@ def TuringInstability(A0,par,n=100,model="TSXLT"):
         JE[:,:,:,:,2,2]=JE[:,:,:,:,2,2]- q**2*par['D_ahl']
         JE2=np.nan_to_num(JE)
         eigvals, eigvecs =np.linalg.eig(JE2)
-        sse=eigvals.real
-        sse=np.sort(sse,4)
+        sse=eigvals
+        index=np.argsort(sse,4)
+        idx=index[0][0][0]
+
+        sse=np.apply_along_axis(sortComplex,4,sse)
+
+
     return sse
 
+def sortComplex(a):
+    b=np.sort_complex(a)
+
+
+    return b
 
 '''
 def bifu_plot(par,ID,inter):
