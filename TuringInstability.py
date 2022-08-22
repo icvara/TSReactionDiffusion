@@ -127,13 +127,15 @@ def getTuringinstability(par,n=100,model="TSXLT"):
    3: oscillation becomes stable
 
    '''
-   oscil=np.apply_along_axis(isOscillation,4,seeD)
-   stab=np.apply_along_axis(isStability,4,seeD)
+   oscil=np.apply_along_axis(isOscillation,3,seeD[:,:,:,0,:])
+   stab=np.apply_along_axis(isStability,3,seeD[:,:,:,0,:])
+
 
    if np.any(stab==1):
       indexa=np.where(stab==1)
-      a=seeD[0,0,indexa[2][0],:,:] 
-      x=a[1:-1,:]*a[0:-2,:] #when the output give <0, where is a change in sign, meaning 0 is crossed
+      a=seeD[0,0,indexa[2],:,:] 
+      x=np.multiply(a[:,1:-1,:].real,a[:,0:-2,:].real) #when the output give <0, where is a change in sign, meaning 0 is crossed
+
       index=np.where(x<0)
       if len(set(index[0]))==0: #no change in signe
          turing_type=0
@@ -144,7 +146,9 @@ def getTuringinstability(par,n=100,model="TSXLT"):
 
    if np.any(oscil==1):
       indexb=np.where(oscil==1)
-      b=seeD[0,0,indexb[2][0],:,:]
+      #print(indexb[2][0])
+      b=seeD[0,0,indexb[2],:,:]
+      #print(b)
       stab_b=np.apply_along_axis(isStability,1,b)
       if np.any(stab_b==1):
          turing_type=3

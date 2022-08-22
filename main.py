@@ -599,16 +599,16 @@ par space here
 '''
 filename="MAP_TuringInstability/test"
 p,df=load(filename,parlist)
-#print(df)
-
-p0=pars_to_dict(p[97],parlist)
+print(df)
+print(df[df["tutype"]==1])
+p0=pars_to_dict(p[36],parlist)
 p0=addfixedpar(p0)
 
 A0=np.zeros(1)
-e= TuringInstability(A0,p0,100)
+e= TuringInstability(A0,p0,10)
 #print(e)
 
-ttype=getTuringinstability(p0,100)
+ttype=getTuringinstability(p0,10)
 print(ttype)
 
 plt.plot(e[0,0,0,:,:],'g')
