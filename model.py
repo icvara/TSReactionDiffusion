@@ -305,9 +305,6 @@ def TuringInstability(A0,par,n=100,model="TSXLT"):
         JE2=np.nan_to_num(JE)
         eigvals, eigvecs =np.linalg.eig(JE2)
         sse=eigvals
-        index=np.argsort(sse,4)
-        idx=index[0][0][0]
-
         sse=np.apply_along_axis(sortComplex,4,sse)
 
 
