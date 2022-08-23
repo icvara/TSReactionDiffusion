@@ -224,4 +224,4 @@ def run(name,Npars=5000,ncpus=40):
 
 
 if __name__ == '__main__':
-   run(name,Npars=100,ncpus=40)
+   run(name,Npars=2000,ncpus=40)
