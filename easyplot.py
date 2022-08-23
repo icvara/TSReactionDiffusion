@@ -375,6 +375,56 @@ def monostable_plot(A0,par,axs,i,j,k,p):
 
 	return axs
 
+'''
+========================================================================================
+
+plot for par space here
+
+==========================================================================================
+'''
+
+
+def par_plot(df,name,nb,parlist,namelist):
+    #plt.plot(df['K_ARAX'],df['K_ARAY'],'ro')
+    fonts=5
+ 
+    for i,par1 in enumerate(namelist):
+        for j,par2 in enumerate(namelist):
+            plt.subplot(len(namelist),len(namelist), i+j*len(namelist)+1)
+            if i == j :
+                plt.hist(df[par1])
+                plt.xlim((parlist[i]['lower_limit'],parlist[i]['upper_limit']))
+            else:
+                plt.scatter(df[par1],df[par2], c=df['tutype'], s=0.1, cmap='viridis')# vmin=mindist, vmax=maxdist)
+                plt.xlim((parlist[i]['lower_limit'],parlist[i]['upper_limit']))
+                plt.ylim((parlist[j]['lower_limit'],parlist[j]['upper_limit']))
+            if i > 0 and j < len(namelist)-1 :
+                plt.xticks([])
+                plt.yticks([])
+            else:
+                if i==0 and j!=len(namelist)-1:
+                    plt.xticks([])
+                    plt.ylabel(par2,fontsize=fonts)
+                    plt.yticks(fontsize=fonts,rotation=90)
+                if j==len(namelist)-1 and i != 0:
+                    plt.yticks([])
+                    plt.xlabel(par1,fontsize=fonts)
+                    plt.xticks(fontsize=fonts)
+                if i==0 and j==len(namelist)-1:
+                    plt.ylabel(par2,fontsize=fonts)
+                    plt.xlabel(par1,fontsize=fonts)
+                    plt.xticks(fontsize=fonts)
+                    plt.yticks(fontsize=fonts,rotation=90)                 
+    #plt.savefig(name+"/plot/"+nb+'_par_plot.pdf', bbox_inches='tight')
+    #plt.savefig(name+"/plot/"+nb+'_par_plot.png', bbox_inches='tight', dpi=300)
+
+    plt.show()
+
+    plt.close()
+
+
+
+
 
 '''
 

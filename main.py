@@ -601,8 +601,12 @@ filename="MAP_TuringInstability/test"
 p,df=load(filename,parlist)
 print(df)
 print(df[df["tutype"]==1])
-p0=pars_to_dict(p[36],parlist)
+p0=pars_to_dict(p[100],parlist)
 p0=addfixedpar(p0)
+
+namelist=[]
+for i,par in enumerate(parlist):
+    namelist.append(parlist[i]['name'])
 
 A0=np.zeros(1)
 e= TuringInstability(A0,p0,10)
@@ -611,16 +615,33 @@ e= TuringInstability(A0,p0,10)
 ttype=getTuringinstability(p0,10)
 print(ttype)
 
-plt.plot(e[0,0,0,:,:],'g')
-plt.plot(e[0,0,1,:,:],'r')
-plt.plot(e[0,0,2,:,:],'b')
-plt.plot(e[0,0,3,:,:],'y')
-plt.plot(e[0,0,4,:,:],'k')
+fig, axs = plt.subplots(3,2,constrained_layout=True)#,figsize=(1,1))
+
+
+axs[0,1].plot(e[0,0,0,:,:],'g')
+axs[0,1].plot(e[0,0,1,:,:],'r')
+axs[0,1].plot(e[0,0,2,:,:],'b')
+axs[0,1].plot(e[0,0,3,:,:],'y')
+axs[0,1].plot(e[0,0,4,:,:],'k')
 #plt.ylim(-0.001,0.001)
-plt.yscale('symlog')
+axs[0,1].set_yscale('symlog')
 
 
+k=np.linspace(1,5,20)
+A0=np.logspace(-3,0,20)
+A0[0]=0#np.logspace(-3,0,20)
+
+print(p0)
+monostable_plot(A0,p0,axs,0,0,k,'K_GREEN')
 plt.show()
+
+
+par_plot(df,"name",1,parlist,namelist)
+
+
+
+
+
 
 stop
 
