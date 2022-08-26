@@ -1,9 +1,9 @@
 '''
-=============================
+================================================================================================================================================================
 
 Script to make diverse plot
 
-===========================
+==============================================================================================================================================================
 '''
 
 import matplotlib.pyplot as plt
@@ -19,6 +19,8 @@ import os
 from model import *
 import imageio
 import seaborn as sns
+import pandas as pd
+
 
 
 #coltor blind color
@@ -26,14 +28,18 @@ color=sns.color_palette("colorblind")
 colorGREEN=color[2]
 colorBLUE=color[0]
 colorRED=color[3]
+colorORANGE=color[1]
+colorCYAN=color[9]
+
+
 colorPurple=color[4]
 '''
 for i in np.arange(len(color)):
 	print(color[i])
 	plt.plot(i,i,'o',color=color[i])
 plt.show()
-
 '''
+
 
 
 
@@ -66,11 +72,11 @@ def generate_gif(av):
 
 
 '''
-==============================================
+=================================================================================================================================================================================
 
 2D grid plot
 
-==============================================
+=================================================================================================================================================================================
 '''
 
 def plot2D_simple(av,tt, axs, i, j, n=5):
@@ -94,16 +100,18 @@ def plot2D_kymograph(av,w, axs, i, j,n=1):
 
 
 def plot2D_simple_tgh(av,tt, axs, i, j):
+
 	colorlist=['Greens','Reds','Blues','Greys','viridis']
-	axs[i,j].imshow(av[tt,0],cmap=colorlist[0],vmin=0,vmax=1,alpha=1, aspect="auto")
-	axs[i,j].imshow(av[tt,1],cmap=colorlist[1],vmin=0,vmax=1,alpha=0.7, aspect="auto")
+	axs[i,j].imshow(av[tt,0],cmap=colorlist[0],alpha=1, aspect="auto")
+	axs[i,j].imshow(av[tt,1],cmap=colorlist[1],alpha=0.7, aspect="auto")#vmin=0,vmax=1
 
 	return axs
 
 def plot2D_kymograph_tgh(av,w, axs, i, j):
+
 	colorlist=['Greens','Reds','Blues','Greys','viridis']
-	axs[i,j].imshow(av[:,0,:,w],cmap=colorlist[0],vmin=0,vmax=1,alpha=1,aspect='auto')
-	axs[i,j].imshow(av[:,1,:,w],cmap=colorlist[1],vmin=0,vmax=1,alpha=0.7,aspect='auto')
+	axs[i,j].imshow(av[:,0,:,w],cmap=colorlist[0],alpha=1,aspect='auto')#vmin=0,vmax=1
+	axs[i,j].imshow(av[:,1,:,w],cmap=colorlist[1],alpha=0.7,aspect='auto')
 	return axs
 
 
@@ -128,11 +136,11 @@ def plot_crosstime(av,w, axs, i, j):
 
 
 '''
-==============================================
+=================================================================================================================================================================================
 
 bifurcation plot
 
-==============================================
+=================================================================================================================================================================================
 '''
 
 
@@ -376,68 +384,214 @@ def monostable_plot(A0,par,axs,i,j,k,p):
 	return axs
 
 '''
-========================================================================================
+===========================================================================================================================================================================================================================
 
 plot for par space here
 
-==========================================================================================
+=============================================================================================================================================================================================================================
 '''
 
 
-def par_plot(df,name,nb,parlist,namelist):
-    #plt.plot(df['K_ARAX'],df['K_ARAY'],'ro')
-    fonts=5
- 
-    for i,par1 in enumerate(namelist):
-        for j,par2 in enumerate(namelist):
-            plt.subplot(len(namelist),len(namelist), i+j*len(namelist)+1)
-            if i == j :
-                plt.hist(df[par1])
-                plt.xlim((parlist[i]['lower_limit'],parlist[i]['upper_limit']))
-            else:
-                plt.scatter(df[par1],df[par2], c=df['tutype'], s=0.1, cmap='viridis')# vmin=mindist, vmax=maxdist)
-                plt.xlim((parlist[i]['lower_limit'],parlist[i]['upper_limit']))
-                plt.ylim((parlist[j]['lower_limit'],parlist[j]['upper_limit']))
-            if i > 0 and j < len(namelist)-1 :
-                plt.xticks([])
-                plt.yticks([])
-            else:
-                if i==0 and j!=len(namelist)-1:
-                    plt.xticks([])
-                    plt.ylabel(par2,fontsize=fonts)
-                    plt.yticks(fontsize=fonts,rotation=90)
-                if j==len(namelist)-1 and i != 0:
-                    plt.yticks([])
-                    plt.xlabel(par1,fontsize=fonts)
-                    plt.xticks(fontsize=fonts)
-                if i==0 and j==len(namelist)-1:
-                    plt.ylabel(par2,fontsize=fonts)
-                    plt.xlabel(par1,fontsize=fonts)
-                    plt.xticks(fontsize=fonts)
-                    plt.yticks(fontsize=fonts,rotation=90)                 
-    #plt.savefig(name+"/plot/"+nb+'_par_plot.pdf', bbox_inches='tight')
-    #plt.savefig(name+"/plot/"+nb+'_par_plot.png', bbox_inches='tight', dpi=300)
 
-    plt.show()
+def par_plot(df_par,parlist,cl=None):
+    fig, axs = plt.subplots(len(parlist),len(parlist))#, constrained_layout=True, figsize=(10/inch_cm,10/inch_cm))
 
-    plt.close()
+    for x in np.arange(len(parlist)):
+        for y in np.arange(len(parlist)):
+
+            px=parlist[x]['name']
+            py=parlist[y]['name']
+
+            if x==y:
+                #axs[x,y] = sns.distplot(df_par[px])
+                axs[x,y].hist(df_par[px],bins=15, density=True)
+
+                axs[x,y].set_xlim(parlist[x]['lower_limit'],parlist[x]['upper_limit'])
+                #sns.kdeplot(ax=axs[x, y],x=df_par[px])
+
+            elif y>x:
+                txt=df_par[px][0]
+                corr=np.corrcoef(df_par[px],df_par[py])[0, 1] #pearson correlation
+                corr_r=np.round(corr,2)
+                axs[x,y].imshow([[corr],[corr]], vmin=-1, vmax=1, cmap="bwr",aspect="auto")
+                axs[x,y].text(0,0.5,corr_r,fontsize=8,ha='center', va='center')
+
+            elif y<x:
+                #z = gaussian_kde(df_par[px])(df_par[py])
+                #idx = z.argsort()
+                #xx, yy, z = df_par[px][idx], df_par[py][idx], z[idx]
+                #axs[x,y].scatter(xx,yy,c=z, s=0.1, cmap='viridis')# vmin=mindist, vmax=maxdist)
+        
+                if cl==None:
+                    axs[x,y].hist2d(df_par[py],df_par[px],bins=15, norm = colors.LogNorm())
+                else:
+                	z=np.array(cl)
+                	idx = z.argsort()
+                	xx =df_par[px][idx]
+                	yy = df_par[py][idx]
+               		z = z[idx]
+                	axs[x,y].scatter(xx,yy,c=z, s=0.1, cmap='viridis', norm = colors.LogNorm())# vmin=mindist, vmax=maxdist)
+
+                axs[x,y].set_xlim(parlist[y]['lower_limit'],parlist[y]['upper_limit'])
+                axs[x,y].set_ylim(parlist[x]['lower_limit'],parlist[x]['upper_limit'])
+
+            
+            niceaxis(axs,x,y,px,py,parlist,parlist,6)
+
+    plt.subplots_adjust(wspace=None, hspace=None)
+
+    return axs
+
+
+#======================================================================================================================================================================================================================================================================
+
+#plot for fitting here
+
+#======================================================================================================================================================================================================================================================================
 
 
 
+def compare_plot(p,filename,meq,datafile,modeltype,lw=0.4):
+       # gmin,gmax,rmin,rmax=meq.Get_data4(datafile,p[0])
+        gmax,gmin,rmax,rmin=meq.Get_data(datafile)
+        A=gmin.index.values
+        I=gmin.columns.values
+        maxi= np.nanmax([ np.nanmax(rmax.to_numpy()),np.nanmax(gmax.to_numpy())])
+        mini= np.nanmin([ np.nanmin(rmin.to_numpy()),np.nanmin(gmin.to_numpy())])
+
+        fig, axs = plt.subplots(6, 2)
+
+        for pi in p:
+            ss=meq.findss(A,I,pi,modeltype)
+            M=np.nanmax(ss[:,:,:,:],axis=2)
+            m=np.nanmin(ss[:,:,:,:],axis=2)
+          
+            
+            for ii,i in enumerate(I):
+                axs[ii,0].plot(A,M[:,ii,0],'-',c=colorGREEN,linewidth=lw)
+                axs[ii,1].plot(A,M[:,ii,1],'-',c=colorRED,linewidth=lw)    
+                axs[ii,0].plot(A,m[:,ii,0],'--',c=colorCYAN,linewidth=lw)
+                axs[ii,1].plot(A,m[:,ii,1],'--',c=colorPurple,linewidth=lw)
+                              
+                axs[ii,0].set_ylim(ymin=mini-0.15*mini,ymax=maxi+.15*maxi)
+
+               
+        for ii,i in enumerate(I):
+
+                axs[ii,0].plot(A,gmax.to_numpy()[:,ii],'ko', markersize=4.)
+                axs[ii,0].plot(A,gmin.to_numpy()[:,ii],'ko', markersize=4., mfc='none')
+
+                axs[ii,1].plot(A,rmax.to_numpy()[:,ii],'ko', markersize=4.)
+                axs[ii,1].plot(A,rmin.to_numpy()[:,ii],'ko', markersize=4., mfc='none')
 
 
+
+def bifu_2Dplot_IPTG(A0,par,axs,i,j,k,p,meq,modeltype):
+	mono_matrix=np.zeros((len(A0),len(k)))
+	mono_green=np.zeros((len(A0),len(k)))
+	mono_red=np.zeros((len(A0),len(k)))
+	oscil_matrix=np.zeros((len(A0),len(k)))
+
+	maxvalues=1#par['beta_green']
+	minvalues=0.001#par['alpha_green']
+
+
+	for ki,kk in enumerate(k):
+		IPTG=kk
+
+		ss=meq.findss(A0,IPTG,par,modeltype)
+		sse=meq.getEigen(G,R,A,I,par)
+
+		sse=getEigen(ss,A0,par)
+		oscil=np.apply_along_axis(isOscillation,3,sse)
+		c=np.count_nonzero(~np.isnan(ss[:,:,:,0]),axis=2)
+		c_oscil=np.count_nonzero(oscil,axis=2)
+		mono_matrix[:,ki]=c[:,0]
+		mono_green[:,ki]=ss[:,:,0,0][:,0]#-minvalues)/(maxvalues-minvalues)
+		mono_red[:,ki]=ss[:,:,0,1][:,0]#-minvalues)/(maxvalues-minvalues)
+		oscil_matrix[:,ki]=c_oscil[:,0]
+
+	mono_matrix[mono_matrix==1]=np.nan
+	#mono_green[mono_green<0.05*maxvalues]=np.nan
+	#mono_red[mono_red<0.05*maxvalues]=np.nan
+	oscil_matrix[oscil_matrix==0]=np.nan
+
+	
+	axs[i,j].imshow(mono_red.T,aspect="auto", cmap="Reds",vmin=minvalues,vmax=maxvalues, alpha=1)
+	axs[i,j].imshow(mono_green.T,aspect="auto", cmap="Greens",vmin=minvalues,vmax=maxvalues, alpha=0.7)
+	axs[i,j].imshow(mono_matrix.T,aspect="auto", cmap="Blues", vmin=0,vmax=5)# vmin=1,vmax=5)
+	#axs[i,j].imshow(oscil_matrix.T,aspect="auto", cmap="Greys", vmin=0,vmax=1)# vmin=1,vmax=5)
+	a=np.argwhere(oscil_matrix.T==1)
+	axs[i,j].plot(a[:,1],a[:,0],'mx',markersize=.5)
+
+	indextick=[]
+	for ind in np.arange(5):
+		new_i = int(len(k)/5)*ind
+		indextick.append(new_i)
+
+	#indextick=np.arange(0,len(k))
+	Xlabel=np.linspace(min(k),max(k),5)
+	Ylabel=np.logspace(min(A0),max(A0),5)
+
+	axs[i,j].set_yticks(indextick)
+	axs[i,j].set_xticks(indextick)
+	axs[i,j].set_yticklabels(np.round(k[indextick],2), fontsize=6 )
+	axs[i,j].set_xticklabels(np.round(A0[indextick],3),rotation=90,fontsize=6 )
+
+	'''
+	axs[i,j].set_yticks(np.arange(len(k)))
+	axs[i,j].set_xticks(np.arange(len(A0)))
+	axs[i,j].set_yticklabels(np.round(k,2), fontsize=6)
+	axs[i,j].set_xticklabels(np.round(A0,2),rotation=90,fontsize=6)
+	'''
+
+	return axs
 '''
 
-=====================
+======================================================================================================================================================================================================================================================================
 
 Script to handle multiple plot more nicely
 need to fuse the two and improve them in one future
 
-=====================
+======================================================================================================================================================================================================================================================================
 
 '''
 
-def niceaxis(axs,x,y,p3,px,py,kx):
+
+
+def niceaxis(axs,x,y,px,py,kx,ky,size):
+        #axs[x,y].set_ylim(-0.1,1.1)
+        #if x==0:
+        #    axs[x,y].set_title(py,fontsize=size)
+        
+        if y==0:
+            axs[x,y].set_ylabel(px,fontsize=size,rotation=45,ha='right')
+            axs[x,y].tick_params(axis='y', labelsize=size-2)
+
+            if x!=len(kx)-1:
+                    axs[x,y].set_xticks([])
+                    axs[x,y].set_xticklabels([])
+            #axs[x,y].set_yticks([])
+
+        if x==len(kx)-1:
+            axs[x,y].set_xlabel(py,fontsize=size,rotation=45)
+            axs[x,y].tick_params(axis='x', labelsize=size-2)
+
+            if y!=0:
+                    axs[x,y].set_yticks([])
+                    axs[x,y].set_yticklabels([])
+
+        if y!=0 and x!=len(kx)-1:
+            axs[x,y].set_xticks([])
+            axs[x,y].set_yticks([])
+            axs[x,y].set_xticklabels([])
+            axs[x,y].set_yticklabels([])
+        #if x==len(kx)-1:
+        #   axs[x,y].set_xlabel('AHL')
+        return axs
+
+
+def niceaxis3(axs,x,y,p3,px,py,kx):
 		#axs[x,y].set_ylim(-0.1,1.1)
 		if x==0:
 			axs[x,y].set_title(str(np.round(py,2)),fontsize=8)
@@ -522,13 +676,55 @@ def niceaxis2(axs,x,y,p3,px,py,kx,ky):
 
 
 
-
-
-
 '''
-======================================================================================================
+==================================================================================================================================================================================================================================================================
+
+
+
+other
+
+
+======================================================================================================================================================================================================================================================================
+'''
+
+
+def load(number, filename,parlist):
+    namelist=[]
+    for i,par in enumerate(parlist):
+        namelist.append(parlist[i]['name'])
+    
+    path = filename+'/smc/pars_' + number + '.out'
+    dist_path = filename+'/smc/distances_' + number + '.out'
+
+    raw_output= np.loadtxt(path)
+    dist_output= np.loadtxt(dist_path)
+    df = pd.DataFrame(raw_output, columns = namelist)
+    df['dist']=dist_output
+    idx=np.argsort(df['dist'])
+    df=df.sort_values('dist',ascending=False)
+    p=[]
+
+    for i in idx:
+        p0=df.loc[i].tolist()
+        p.append(pars_to_dict(p0,parlist))
+
+    
+    return p, df 
+
+
+def pars_to_dict(pars,parlist):
+### This function is not necessary, but it makes the code a bit easier to read,
+### it transforms an array of pars e.g. p[0],p[1],p[2] into a
+### named dictionary e.g. p['k0'],p['B'],p['n'],p['x0']
+### so it is easier to follow the parameters in the code
+    dict_pars = {}
+    for ipar,par in enumerate(parlist):
+        dict_pars[par['name']] = pars[ipar] 
+    return dict_pars
+'''
+=========================================================================================================================================================================================================================================
 old script in case
-====================================================================================================
+=======================================================================================================================================================================================================================================
 '''
 
 

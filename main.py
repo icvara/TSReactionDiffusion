@@ -12,6 +12,7 @@ from TuringInstability import*
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import pandas as pd
+import sys
 
 
 #check dx???
@@ -155,16 +156,7 @@ def init_colony(values,width):
 
 
     
-def load(name,parlist):
-    p= np.loadtxt(name+"_par.out")
-    tutype= np.loadtxt(name+"_turingtype.out")
 
-    namelist=[]
-    for i,par in enumerate(parlist):
-        namelist.append(parlist[i]['name'])
-    df = pd.DataFrame(p, columns = namelist)
-    df['tutype']=tutype
-    return p,df
 
 
 def pars_to_dict(pars,parlist):
@@ -399,9 +391,13 @@ stop
 '''
 
 
-#=====================================================
+#===============================================================================================================================================================
+
+
 #screen of par space here
-#===================================================
+
+
+#======================================================================================================================================================================
 
 '''
 par=par0
@@ -591,52 +587,120 @@ stop
 
 
 '''
-===========================================================================
+====================================================================================================================================
 
-par space here
+TURING INSTABILTIY HERE
 
-===========================================================================
+still in progress
+
+======================================================================================================================================
 '''
-filename="MAP_TuringInstability/test"
-p,df=load(filename,parlist)
-print(df)
-print(df[df["tutype"]==1])
-p0=pars_to_dict(p[100],parlist)
-p0=addfixedpar(p0)
 
-namelist=[]
-for i,par in enumerate(parlist):
-    namelist.append(parlist[i]['name'])
+'''
+filename="MAP_TuringInstability/type1"
+p,df=loadTI(filename,parlist)
+
+par_plot(df,parlist)
+plt.savefig("Figures/"+"type1_"+"TI_Parplot.pdf",dpi=300)
+plt.show()
+
+
+filename="MAP_TuringInstability/type3"
+p,df=load(filename,parlist)
+par_plot(df,parlist)
+plt.savefig("Figures/"+"type3_"+"TI_Parplot.pdf",dpi=300)
+plt.show()
+
+'''
+'''
+filename="MAP_TuringInstability/type1"
+p,df=load(filename,parlist)
+p0=pars_to_dict(p[8],parlist) #
+#p0
+par=addfixedpar(p0)
+
+
+ttype, e2=getTuringinstability(par,200)
+A0=np.zeros(1)
+e2 = TuringInstability(A0,par,200)
+print(e2.shape)
+plt.axhline(y=0., xmin=0, xmax=200, c="k")
+plt.plot(e2[0,0,0,:,:])
+plt.yscale('symlog')
+plt.show()
+
+stop
+
+'''
+
+
+
+
+
+##########################################################################
+
+
+
+
+
+'''
+ttype, e2=getTuringinstability(par,200)
+idx=np.argwhere(e2>0)[0]
+ep=e2[idx[0],:,idx[2]]
+axs[0,0].plot(ep,'r')
+axs[0,0].set_yscale('symlog')
+axs[0,0].axhline(y=0., xmin=0, xmax=200, c="blue")
+
+k=np.linspace(1,5,20)
+A0=np.logspace(-3,0,20)
+A0[0]=10e-100
+bifu_plot_tgh(par,A0,axs,0,1)
+
+#A0[0]=0#np.logspace(-3,0,20)
+
+#monostable_plot(A0,p0,axs,0,1,k,'K_GREEN2')
+
+Tmatrx=[1,1,0]
+Nmatrx=[0.,0.,0.,0.]
+size=10 #mm 10-1
+dx=0.1
+par['D_ahl']=1.00
+width=int(size/dx)
+time=10
+dt=0.01
 
 A0=np.zeros(1)
-e= TuringInstability(A0,p0,10)
-#print(e)
+ss=findss(A0,[0],par)
+e = getEigen(ss,A0,par)
 
-ttype=getTuringinstability(p0,10)
-print(ttype)
+Vmatrx=[ss[0,0,0,0],ss[0,0,0,1],ss[0,0,0,2],1]
+G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
+av = simulation(G,R,A,C,D,[0],0,par,width,dx,time,dt,"TSXLT",time,False)
+plot2D_simple_tgh(av,-1,axs,1,1)
+plot2D_kymograph_tgh(av,int(width/2), axs, 2,1)
 
-fig, axs = plt.subplots(3,2,constrained_layout=True)#,figsize=(1,1))
+Vmatrx=[1,0.2,1,1]
+
+Vmatrx=[ss[0,0,2,0],ss[0,0,2,1],ss[0,0,2,2],1]
+
+G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
+av = simulation(G,R,A,C,D,[0],0,par,width,dx,time,dt,"TSXLT",time,False)
+plot2D_simple_tgh(av,-1,axs,1,0)	
+plot2D_kymograph_tgh(av,int(width/2), axs, 2,0)
 
 
-axs[0,1].plot(e[0,0,0,:,:],'g')
-axs[0,1].plot(e[0,0,1,:,:],'r')
-axs[0,1].plot(e[0,0,2,:,:],'b')
-axs[0,1].plot(e[0,0,3,:,:],'y')
-axs[0,1].plot(e[0,0,4,:,:],'k')
-#plt.ylim(-0.001,0.001)
-axs[0,1].set_yscale('symlog')
+plt.show()
+
+
 
 
 k=np.linspace(1,5,20)
 A0=np.logspace(-3,0,20)
 A0[0]=0#np.logspace(-3,0,20)
 
-print(p0)
 monostable_plot(A0,p0,axs,0,0,k,'K_GREEN')
 plt.show()
 
-
-par_plot(df,"name",1,parlist,namelist)
 
 
 
@@ -646,6 +710,53 @@ par_plot(df,"name",1,parlist,namelist)
 stop
 
 
+p=p[0:50]
+
+A0=np.zeros(1)
+e= TuringInstability(A0,p0,10)
+#print(e)
+
+ttype, e2=getTuringinstability(p0,10)
+idx=np.argwhere(e2>0)[0]
+ep=e2[idx[0],:,idx[2]]
+
+
+s=int(np.round((np.sqrt(len(p))+.5)))
+print(s)
+fig, axs = plt.subplots(s,s,constrained_layout=True,figsize=(s,s))
+x,y = 0, 0
+for pi in p:
+	p0=pars_to_dict(pi,parlist)
+	p0=addfixedpar(p0)
+	ttype, e2=getTuringinstability(p0,200)
+	idx=np.argwhere(e2>0)[0]
+	ep=e2[idx[0],:,idx[2]]
+	axs[x,y].plot(ep,'r')
+	axs[x,y].set_yscale('symlog')
+	axs[x,y].axhline(y=0., xmin=0, xmax=200, c="blue")
+
+	x+=1
+	if x>s-1:
+		x=0
+		y+=1
+
+plt.show()
+
+
+#try to map max high
+
+filename="MAP_TuringInstability/type1"
+p,df=load(filename,parlist)
+mm_tot=[]
+for pi,pp in enumerate(p):
+	p0=pars_to_dict(pp,parlist)
+	p0=addfixedpar(p0)
+	ttype, e2=getTuringinstability(p0,200)
+	mm=np.nanmax(e2.real)
+	mm_tot.append(mm)
+
+par_plot(df,parlist,mm_tot)
+plt.show()
 
 
 
@@ -653,8 +764,66 @@ stop
 
 
 
+stop
+
+'''
 
 
+
+#===============================================================================================================================================================
+
+
+#Fit analysis 
+
+
+#======================================================================================================================================================================
+
+
+
+filename="FIT010_TSXLT_gated"
+modeltype="TSXLT"
+data="data_gated.txt"
+datafile = 'data/'+modeltype + '/' +data
+
+
+#n=['final','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18']
+#n=['7']
+
+#sys.path.insert(0, '/users/ibarbier/AC-DC/'+filename)
+sys.path.insert(0, 'C:/Users/Administrator/Desktop/Modeling/TSReactionDiffusion/'+filename)
+import model_fit as meq
+parlist=meq.parlist
+
+#n=['43']
+n=['26']
+p, df= load(n[0],filename,meq.parlist)
+
+'''
+#PARPLOT
+par_plot(df,parlist)
+plt.savefig(filename+"/plot/"+str(n[0])+"_parspace.pdf", dpi=300)
+plt.show()
+'''
+
+
+#COMPARE PLOT
+#compare_plot([p[0]],filename,meq,datafile,modeltype,lw=1.5)
+compare_plot(p[400:799],filename,meq,datafile,modeltype,lw=.5)
+#plt.savefig(filename+"/plot/"+str(n[0])+'last_compare_plot.pdf', bbox_inches='tight',dpi=300)
+plt.show()
+
+
+#bifuplot
+
+
+
+stop
+#===============================================================================================================================================================
+
+
+#delete?
+
+#======================================================================================================================================================================
 
 
 ##################################################################333

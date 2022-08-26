@@ -121,6 +121,7 @@ def getTuringinstability(par,n=100,model="TSXLT"):
    turing_type= -1 #no stability ? 
    newpar=[]
    seeD = TuringInstability(A,par,n,model)
+   e = []
    '''
    three case
    1: stable becomes unstable
@@ -131,19 +132,20 @@ def getTuringinstability(par,n=100,model="TSXLT"):
    oscil=np.apply_along_axis(isOscillation,3,seeD[:,:,:,0,:])
    stab=np.apply_along_axis(isStability,3,seeD[:,:,:,0,:])
 
-
    if np.any(stab==1):
       indexa=np.where(stab==1)
       a=seeD[0,0,indexa[2],:,:] 
       x=np.multiply(a[:,1:-1,:].real,a[:,0:-2,:].real) #when the output give <0, where is a change in sign, meaning 0 is crossed
-
       index=np.where(x<0)
       if len(set(index[0]))==0: #no change in signe
          turing_type=0
-      if len(set(index[0]))==1: # change in signe once
+         e=a
+      elif len(set(index[0]))==1: # change in signe once
          turing_type=1
-      if len(set(index[0]))>1: # change in signe at least twice. classic Turing pattern
+         e=a
+      elif len(set(index[0]))>1: # change in signe at least twice. classic Turing pattern
          turing_type=2
+         e=a
 
    if np.any(oscil==1):
       indexb=np.where(oscil==1)
@@ -153,8 +155,9 @@ def getTuringinstability(par,n=100,model="TSXLT"):
       stab_b=np.apply_along_axis(isStability,1,b)
       if np.any(stab_b==1):
          turing_type=3
+         e=a
                   
-   return turing_type
+   return turing_type, e
 
 
 def choosepar(parlist):
@@ -176,7 +179,7 @@ def calculatePar(parlist, iter):
    while tutype!=dist:
          proposed_pars = choosepar(parlist)
          p=pars_to_dict(proposed_pars,parlist)
-         tutype = getTuringinstability(p)
+         tutype, e = getTuringinstability(p)
 
 
    return proposed_pars,tutype
@@ -206,7 +209,7 @@ def GeneratePars(parlist, ncpus,Npars=1000):
 
 
 
-def load(name,parlist):
+def loadTI(name,parlist):
     tutype= np.loadtxt(name+"_turingtype.out")
     p= np.loadtxt(name+"_par.out")
 
@@ -217,6 +220,7 @@ def load(name,parlist):
     df['tutype']=tutype
     df=df.sort_values(by='tutype', ascending=False)
     return df
+
 
 def run(name,Npars=5000,ncpus=40):
     par,tutype=GeneratePars(parlist, ncpus,Npars=Npars)

@@ -104,7 +104,6 @@ def model_TSXLT(GREENi,REDi,AHLi,A0,IPTG,par):
     #RED[np.isnan(RED)] = minabs
     RED = RED / (1 + np.power(free_GREENi*10**par['K_GREEN'],par['n_GREEN']))
     RED = RED - par['delta_red']*REDi 
-
     AHL = (par['beta_ahl']*np.power(GREENi*10**par['K_ahl'],par['n_ahl']))/(1+np.power(GREENi*10**par['K_ahl'],par['n_ahl']))
     AHL = AHL - par['delta_ahl']*AHLi 
 
