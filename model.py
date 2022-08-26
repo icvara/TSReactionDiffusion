@@ -165,7 +165,7 @@ def findss(Ai,I,par,model="TSXLT"):
         return 0
     ss=[]
     nNode=3 # number of nodes : X,Y,Z
-    nStstate= 5
+    nStstate= 7
     nAHL= len(Ai)
     nIPTG=len(I)
     ss=np.ones((nAHL,nIPTG,nStstate,nNode))*np.nan  
@@ -293,7 +293,7 @@ def TuringInstability(A0,par,n=100,model="TSXLT"):
     q=np.linspace(0,20,n)#100
     ss=findss(A0,[I],par)
     J=jacobianMatrix(ss,par,A0,model)
-    JE=np.ones((len(A0),len([I]),5,n,3,3))*np.nan
+    JE=np.ones((len(A0),len([I]),ss.shape[2],n,3,3))*np.nan
     JE[:,:,:,:,:,:]=np.copy(J[:,:,:,np.newaxis,:,:])
     #JE=np.ones((len(A0),len([I]),5,3,3,20))*np.copy(J)
 

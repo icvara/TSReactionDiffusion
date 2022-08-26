@@ -30,7 +30,8 @@ import pandas as pd
 '''
 
 version="MAP_TuringInstability"
-name="test"
+name="type3"
+dist=3
 
 if os.path.isdir(version) is False: ## if 'smc' folder does not exist:
         os.mkdir(version) ## create it, the output will go there
@@ -172,7 +173,7 @@ def calculatePar(parlist, iter):
    np.random.seed()
    evaluated_distances = []
    tutype=0
-   while tutype<1:
+   while tutype!=dist:
          proposed_pars = choosepar(parlist)
          p=pars_to_dict(proposed_pars,parlist)
          tutype = getTuringinstability(p)
@@ -224,4 +225,4 @@ def run(name,Npars=5000,ncpus=40):
 
 
 if __name__ == '__main__':
-   run(name,Npars=2000,ncpus=40)
+   run(name,Npars=5000,ncpus=40)
