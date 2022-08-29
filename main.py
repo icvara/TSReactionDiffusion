@@ -20,11 +20,13 @@ import sys
 
 def simulation(G,R,A,C,D,A0,IPTG,par,width,dx,time,dt,model = "TSXLT",tt=1,stationary=True):
 	ti=1
-	av=np.zeros((int(tt/dt),5,len(G),len(G)))
+	av=np.zeros((int(tt/dt),6,len(G),len(G)))
 	#av=np.zeros((int(tt/dt),3,len(G)))
 
 	Gi=np.copy(G)
 	Ri=np.copy(R)
+	Rfi=np.copy(R)
+
 	Ai=np.copy(A)
 	Ci=np.copy(C)
 	Di=np.copy(D)
@@ -33,10 +35,11 @@ def simulation(G,R,A,C,D,A0,IPTG,par,width,dx,time,dt,model = "TSXLT",tt=1,stati
 	gcell=[[],[]]
 
 	av[0,0]=Gi
-	av[0,1]=Ri
-	av[0,2]=Ai
-	av[0,3]=Ci
-	av[0,4]=Di
+	av[0,1]=Rfi
+	av[0,2]=Ri
+	av[0,3]=Ai
+	av[0,4]=Ci
+	av[0,5]=Di
 
 	I=IPTG
 
@@ -76,7 +79,28 @@ def simulation(G,R,A,C,D,A0,IPTG,par,width,dx,time,dt,model = "TSXLT",tt=1,stati
 				g,r,a =  model_TSXLT(Gi,Ri,Ai,A0,I,par)
 				Gi += dt*g*(Ci - stat_effect)
 				Ri += dt*r*(Ci - stat_effect)
-				Ai += dt*a*(Ci - stat_effect)*(Di/5) + adif
+				Ai += dt*a*(Ci - stat_effect) + adif
+
+			elif model== "TSXLT_fit":
+
+				#3.1 diffusion
+				'''
+				#change suze of matrix for diffusion
+				#Ai_reduce=decrease_matrix(Ai,dx,dx_diffusion)
+				#adif_small = diffusion2D(Ai_reduce,par['D_ahl'],dx_diffusion,dt)
+				#adif = increase_matrix(adif_small,dx,dx_diffusion)
+				'''
+				adif=diffusion2D(Ai,par['D_ahl'],dx,dt)
+
+				#3.2 dX/dt
+
+				g,r,rf,a =  meq.model_TSXLT(Gi,Ri,Rfi,Ai,A0,I,par)
+				Gi += dt*g*(Ci - stat_effect)
+				Ri += dt*r*(Ci - stat_effect)
+				Rfi += dt*rf*(Ci - stat_effect)
+				Ai += dt*a*(Ci - stat_effect)*Di/par_growth['max_density'] + adif
+				#Ai += dt*a*(Ci - stat_effect) + adif
+
 
 			elif model== "Turing":
 				g,r = model_turing(Gi,Ri,par)
@@ -118,10 +142,11 @@ def simulation(G,R,A,C,D,A0,IPTG,par,width,dx,time,dt,model = "TSXLT",tt=1,stati
 			Di =  Di + dt*d
 
 			av[ti,0]=Gi 
-			av[ti,1]=Ri 
-			av[ti,2]=Ai 
-			av[ti,3]=Ci
-			av[ti,4]=Di 
+			av[ti,1]=Rfi 
+			av[ti,2]=Ri 
+			av[ti,3]=Ai 
+			av[ti,4]=Ci
+			av[ti,5]=Di 
  
 
 
@@ -640,9 +665,6 @@ stop
 ##########################################################################
 
 
-
-
-
 '''
 ttype, e2=getTuringinstability(par,200)
 idx=np.argwhere(e2>0)[0]
@@ -780,8 +802,8 @@ stop
 
 
 
-filename="FIT010_TSXLT_gated"
-modeltype="TSXLT"
+filename="FIT010_TSLT_gated"
+modeltype="TSLT"
 data="data_gated.txt"
 datafile = 'data/'+modeltype + '/' +data
 
@@ -794,9 +816,25 @@ sys.path.insert(0, 'C:/Users/Administrator/Desktop/Modeling/TSReactionDiffusion/
 import model_fit as meq
 parlist=meq.parlist
 
-#n=['43']
-n=['26']
+n=['43']
+#n=['26']
+
+
+gg,gr,rr,rg=meq.Get_data(datafile)
+AHL=gg.index.values
+IPTG=gg.columns.values
 p, df= load(n[0],filename,meq.parlist)
+p0=p[0]
+
+
+
+p0['D_ahl']=0.1#0.010
+p0['beta_ahl']=0#-1.5
+
+p0['delta_ahl']=1
+p0['K_ahl']=0
+p0['n_ahl']=1.00
+
 
 '''
 #PARPLOT
@@ -805,19 +843,150 @@ plt.savefig(filename+"/plot/"+str(n[0])+"_parspace.pdf", dpi=300)
 plt.show()
 '''
 
-
+'''
 #COMPARE PLOT
+
 #compare_plot([p[0]],filename,meq,datafile,modeltype,lw=1.5)
-compare_plot(p[400:799],filename,meq,datafile,modeltype,lw=.5)
-#plt.savefig(filename+"/plot/"+str(n[0])+'last_compare_plot.pdf', bbox_inches='tight',dpi=300)
+compare_plot(p,filename,meq,datafile,modeltype,lw=.5)
+plt.savefig(filename+"/plot/"+str(n[0])+'_plot.pdf', bbox_inches='tight',dpi=300)
+plt.show()
+'''
+
+'''
+#BIFUPLOT
+gg,gr,rr,rg=meq.Get_data(datafile)
+AHL=gg.index.values
+IPTG=gg.columns.values
+fig, axs = plt.subplots(2,2,constrained_layout=True)
+bifu_2Dplot_IPTG(AHL,p0,axs,0,0,IPTG,p,meq,"TSXLT")
+size=50
+AHL=np.logspace(-5,1,size)
+IPTG=np.logspace(-2,1,size)
+bifu_2Dplot_IPTG(AHL,p0,axs,1,0,IPTG,p,meq,"TSXLT")
+plt.savefig(filename+"/plot/"+str(n[0])+'_bifuDiag.pdf', bbox_inches='tight',dpi=300)
+plt.show()
+'''
+
+#TURING Instability
+
+
+
+
+
+
+
+'''
+gg,gr,rr,rg=meq.Get_data(datafile)
+AHL=gg.index.values
+IPTG=gg.columns.values
+nPar=9
+k1=np.linspace(-3,0,nPar)
+k2=np.linspace(-2,2,nPar)
+par1="beta_ahl"
+par2="K_ahl"
+fig, axs = plt.subplots(nPar,nPar)#constrained_layout=True)
+for x,px in enumerate(k1):
+	for y,py in enumerate(k2):
+		p0[par1]=px
+		p0[par2]=py
+		bifu_2Dplot_IPTG(AHL,p0,axs,x,y,IPTG,p,meq,"TSXLT")
+		niceaxis(axs,x,y,px,py,k1,k2,8)
+plt.show()
+'''
+
+
+#colonies simulation
+
+########################################
+
+
+
+A0=np.logspace(-6,0,100)
+I=np.ones(1)*0.25
+
+ss=meq.findss(A0,I,p0,"TSXLT")
+gstate=np.copy(ss[0,0,1])
+gstate[0]=gstate[0]-10**p0['basal_green']
+#gstate[2]=gstate[2]-10**p0['basal_red']
+
+#rstate=np.copy(ss[-1,-1,0])
+#rstate[0]=rstate[0]-10**p0['basal_green']
+#rstate[1]=rstate[1]-10**p0['basal_red']
+
+
+fig, axs = plt.subplots(2,3)#constrained_layout=True)
+
+
+bifu_plot_fit(p0,A0,I,axs,0,0,meq,"TSXLT")
+plt.show()
+A0=np.zeros(1)
+
+
+Tmatrx=[1,1,0] #which ?
+Nmatrx=[0.,0.,0.,0.] #noise
+Vmatrx=[800,0,0,1] #initial values
+size= 16
+dx=0.05
+time=4
+dt=0.001
+width=int(size/dx)
+
+fig, axs = plt.subplots(2,2)#constrained_layout=True)
+G,R,A,C,D = init_colony(Vmatrx,width)
+av = simulation(G,R,A,C,D,A0,I,p0,width,dx,time,dt,"TSXLT_fit",time,True)
+plot2D_simple_tgh(av,-1,axs,0,0)
+plot2D_kymograph_tgh(av,int(width/2), axs, 0, 1)
+#plot_crossection(av,-1,int(width/2), axs, 0, 1)
+plot_crossection_diffusion(av,-1,int(width/2), axs, 1, 1)
+plot_crosstime(av,int(width/2), axs, 1, 0)
+
+
 plt.show()
 
 
-#bifuplot
+stop
+
+#2D simulation
+Tmatrx=[1,1,0]
+Nmatrx=[0.,0.,0.,0.]
 
 
+width=int(size/dx)
+time=200
+dt=0.1
+
+A0=AHL
+I=IPTG[:,np.newaxis]
+
+gstate=np.copy(ss[0,0,0])
+gstate[0]=gstate[0]-10**p0['basal_green']
+gstate[1]=gstate[1]-10**p0['basal_red']
+
+rstate=np.copy(ss[-1,-1,0])
+rstate[0]=rstate[0]-10**p0['basal_green']
+rstate[1]=rstate[1]-10**p0['basal_red']
+
+fig, axs = plt.subplots(2,2,constrained_layout=True)
+
+Vmatrx=[gstate[0],gstate[1],0,1]
+G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
+av = simulation(G,R,A,C,D,A0,I,p0,width,dx,time,dt,"TSXLT_fit",time,False)
+plot2D_simple_tgh(av,-1,axs,0,0)
+
+Vmatrx=[rstate[0],rstate[1],0,1]
+G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
+av = simulation(G,R,A,C,D,A0,I,p0,width,dx,time,dt,"TSXLT_fit",time,False)
+plot2D_simple_tgh(av,-1,axs,1,0)
+plt.show()
 
 stop
+
+
+
+
+
+
+
 #===============================================================================================================================================================
 
 

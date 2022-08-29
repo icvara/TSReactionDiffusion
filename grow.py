@@ -12,9 +12,9 @@ time=0.1
 '''
 
 par_growth={  
-    'D_growth': 1, #density growing by hour with consideration of the max density
+    'D_growth': 20, #density growing by hour with consideration of the max density
     'max_density': 100,
-	'H_growth': 0.01 #  cm/h ?
+	'H_growth': 1#0.01 #  cm/h ?
 }
 
 def calculateStationary(d0,par):
