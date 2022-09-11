@@ -17,6 +17,9 @@ import numpy as np
 import os
 
 from model import *
+from grow import *
+from torun import *
+
 import imageio
 import seaborn as sns
 import pandas as pd
@@ -79,6 +82,17 @@ def generate_gif(av):
 =================================================================================================================================================================================
 '''
 
+def bestMatrix(G,R):
+
+
+	idxG=np.where(G>R)
+	idxR=np.where(G<R)
+	Gm=np.ones(G.shape)*np.nan
+	Rm=np.ones(R.shape)*np.nan
+	Gm[idxG]=G[idxG]
+	Rm[idxR]=R[idxR]
+	return Gm,Rm
+
 def plot2D_simple(av,tt, axs, i, j, n=5):
 	colorlist=['Greens','Reds','Blues','Greys','viridis']
 	maxV=1
@@ -102,16 +116,24 @@ def plot2D_kymograph(av,w, axs, i, j,n=1):
 def plot2D_simple_tgh(av,tt, axs, i, j):
 
 	colorlist=['Greens','Reds','Blues','Greys','viridis']
-	axs[i,j].imshow(av[tt,0],cmap=colorlist[0],alpha=1, aspect="auto")
-	axs[i,j].imshow(av[tt,2],cmap=colorlist[1],alpha=0.7, aspect="auto")#vmin=0,vmax=1
+	Gm,Rm = bestMatrix (av[tt,0],av[tt,1])
+	vmaxG=np.nanmax(Gm)
+	vmaxR=np.nanmax(Rm)
+
+	axs[i,j].imshow(Gm,cmap=colorlist[0],alpha=1, aspect="auto",vmin=0,vmax=vmaxG)
+	axs[i,j].imshow(Rm,cmap=colorlist[1],alpha=1, aspect="auto",vmin=0,vmax=vmaxR)#vmin=0,vmax=1
 
 	return axs
 
 def plot2D_kymograph_tgh(av,w, axs, i, j):
+	Gm,Rm = bestMatrix (av[:,0,w,:],av[:,1,w,:])
+	vmaxG=np.nanmax(Gm)
+	vmaxR=np.nanmax(Rm)
+
 
 	colorlist=['Greens','Reds','Blues','Greys','viridis']
-	axs[i,j].imshow(av[:,0,w,:],cmap=colorlist[0],alpha=1,aspect='auto')#vmin=0,vmax=1
-	axs[i,j].imshow(av[:,2,w,:],cmap=colorlist[1],alpha=0.7,aspect='auto')
+	axs[i,j].imshow(Gm,cmap=colorlist[0],alpha=1,aspect='auto',vmin=0,vmax=vmaxG)
+	axs[i,j].imshow(Rm,cmap=colorlist[1],alpha=1,aspect='auto',vmin=0,vmax=vmaxR)
 	return axs
 
 
@@ -121,7 +143,7 @@ def plot_crossection(av,tt,w, axs, i, j):
 
 	axs[i,j].plot(av[tt,0,:,w],color=colorGREEN)
 	axs[i,j].plot(av[tt,1,:,w],color=colorRED)
-	axs[i,j].plot(av[tt,2,:,w],color=colorORANGE)
+	#axs[i,j].plot(av[tt,2,:,w],color=colorORANGE)
 
 	axs[i,j].plot(av[tt,3,:,w],color=colorBLUE)
 
@@ -135,10 +157,15 @@ def plot_crossection(av,tt,w, axs, i, j):
 def plot_crossection_diffusion(av,tt,w, axs, i, j):
 	axs[i,j].plot(av[tt,4,:,w],'k')
 	axs[i,j].plot(av[tt,3,:,w],color=colorBLUE)
-	axs[i,j].plot(av[tt,5,:,w]/np.max(av[tt,5,:,w]),'m')
-	axs[i,j].plot(av[tt,1,:,w]/np.max(av[tt,1,:,w]),color=colorGREEN)
-	axs[i,j].plot(av[tt,3,:,w]/np.max(av[tt,3,:,w]),color=colorRED)
+	#axs[i,j].plot(av[tt,5,:,w]/np.max(av[tt,5,:,w]),'m')
+	#axs[i,j].plot(av[tt,1,:,w]/np.max(av[tt,1,:,w]),color=colorGREEN)
+	#axs[i,j].plot(av[tt,2,:,w]/np.max(av[tt,2,:,w]),color=colorRED)
+	#axs[i,j].plot(av[tt,3,:,w]/np.max(av[tt,3,:,w]),color=colorORANGE)
 
+	axs[i,j].plot(av[tt,5,:,w],'m')
+	axs[i,j].plot(av[tt,1,:,w],color=colorGREEN)
+	axs[i,j].plot(av[tt,2,:,w],color=colorRED)
+	axs[i,j].plot(av[tt,3,:,w],color=colorORANGE)
 
 
 	#axs[i,j].plot(av[tt,4,:,w])
@@ -146,14 +173,103 @@ def plot_crossection_diffusion(av,tt,w, axs, i, j):
 
 def plot_crosstime(av,w, axs, i, j):
 
-	axs[i,j].plot(av[:,0,w,w]/np.max(av[:,0,w,w]),color=colorGREEN)
-	axs[i,j].plot(av[:,2,w,w]/np.max(av[:,2,w,w]),color=colorRED)
-	axs[i,j].plot(av[:,3,w,w]/np.max(av[:,3,w,w]),color=colorBLUE)
-	axs[i,j].plot(av[:,5,w,w]/np.max(av[:,5,w,w]),color='m')
+	axs[i,j].plot(av[:,0,w,w],color=colorGREEN)
+	axs[i,j].plot(av[:,1,w,w],color=colorRED)
+	axs[i,j].plot(av[:,2,w,w],color=colorORANGE)
+
+	axs[i,j].plot(av[:,3,w,w],color=colorBLUE)
+	#axs[i,j].plot(av[:,5,w,w]/np.max(av[:,5,w,w]),color='m')
 
 	#axs[i,j].plot(av[:,4,w,w],'k')
 	#axs[i,j].plot(av[:,4,w,w])
 	return axs
+
+
+def test_diffusion(name):
+	p={
+		'beta_green':0,
+		'alpha_green':1,#0.001,
+
+		'K_ahl_green':0,
+		'n_ahl_green':2,
+		'delta_green':1,
+
+		'K_GREEN':1,
+		'n_GREEN':2,
+
+		'beta_red':0,
+		'alpha_red':0.001,
+
+		'K_ahl_red':0,
+		'n_ahl_red':2,
+		'delta_red':1.,
+
+		'K_RED':-10,
+		'n_RED':2,
+
+		'beta_ahl':1,
+		'K_ahl':1,
+		'n_ahl':2,
+		'delta_ahl':1,
+
+	    'D_ahl':1,#0.1,
+
+	    'K_IPTG':1
+    }
+
+	time=10#20
+	dt=0.001
+	size=10 
+	dx=0.1
+	width=int(size/dx)
+
+	par_growth['H_growth']=0
+
+	G=np.ones((width,width))*0
+	R=np.ones((width,width))*0
+	A=np.ones((width,width))*0
+	C=np.ones((width,width))*0
+	D=np.ones((width,width))*0
+	A0=np.zeros(1)
+	IPTG=np.zeros(1)
+	fig, axs = plt.subplots(1,2,constrained_layout=True)
+
+	#colist=['k','r','g','b','m']
+
+
+	#k=np.logspace(0,-3,4)
+	k=np.linspace(0,2,10)
+	nx=25
+	for c,Dif in enumerate(k):
+		center=[]
+		border=[]
+		p['D_ahl']=Dif
+		for x in np.arange(nx):
+			pos=int(width/2)
+			for i in np.arange(-x,x+1):
+				for j in np.arange(-x,x+1):
+
+					C[pos+i,pos+j]=1
+					D[pos+i,pos+j]=1
+					G[pos+i,pos+j]=1
+					R[pos+i,pos+j]=0.01
+
+			av=simulation(G,R,A,C,D,A0,IPTG,p,width,dx,time,dt,"TSXLT",time,False,False)
+			center.append(av[-1,3,pos,pos])
+			border.append(av[-1,3,pos,pos] - av[-1,3,pos-x,pos])
+
+		x1= np.arange(nx)*2
+		axs[0].plot(x1,center,'-o',color=color[c])
+		x2= x1 +1
+		axs[1].plot(x2,border,'-o',color=color[c])
+
+	axs[0].set_xlabel("number of neighbour")
+	axs[0].set_ylabel("AHL")
+	axs[1].set_xlabel("Colony size")
+	axs[1].set_ylabel("AHL center - AHL border")
+	axs[1].legend( k, loc=0)
+	plt.savefig("Figures/"+name+"_testDiffusion.pdf",dpi=300)
+	plt.show()
 
 
 
