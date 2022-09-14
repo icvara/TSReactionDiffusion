@@ -57,7 +57,7 @@ par0={
 	'n_ahl':2,
 	'delta_ahl':1,
 
-    'D_ahl':1,#0.1,
+    'D_ahl':0,#0.1,
 
     'K_IPTG':1
     }
@@ -346,55 +346,190 @@ plt.show()
 ======================================================================================================================
 '''
 
+size=4 #cm 10-1
+#dt=0.005
+dt=0.1
+size=4
+dx=0.05
+width=int(size/dx)
+pos=int(width/2)
+unitX= np.arange(0,width)*dx
+time=20
+par_growth['H_growth'] = 0.05 #0.05# #  cm/h ?
+par_growth['D_growth'] =  0.5 #  cm/h ?
+
 ######## 1. TEST DIFFUSION ###########
 
 
-test_diffusion("3")
-stop
+#test_diffusion("1")
+#stop
 
 
+
+######### TEST GROWTH  stat + heredity####################
 
 '''
-size=10 #mm 10-1
-dx=0.1
-width=int(size/dx)
+par=par0
+par=par_rep
 
- 
+par_growth['H_growth'] = 0.05 #0.05# #  cm/h ?
+par_growth['D_growth'] =  0.5 #  cm/h ?
+A0=np.zeros(1)
+#par_growth['max_density']=10
 
 
-dx_diffusion= dx
-time=10
+Tmatrx=[1,1,1] # G,R,AHL  tell which one to randomize
+Vmatrx=[0,1.,0,1] # same order, the init values
+Nmatrx=[0.,0.,0.,0.] #the noise itensity G,R,A,D
+
+#G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
+G,R,A,C,D = init_colony(Vmatrx,width)
+
+'''
+'''
+name ="split/"
+G[pos,pos]=0
+R[pos,pos]=1
+C[pos,pos]=1
+D[pos,pos]=1
+
+G[pos-1,pos-1]=0
+R[pos-1,pos-1]=1
+C[pos-1,pos-1]=1
+D[pos-1,pos-1]=1
+
+G[pos,pos-1]=1
+R[pos,pos-1]=0
+C[pos,pos-1]=1
+D[pos,pos-1]=1
+
+G[pos-1,pos]=1
+R[pos-1,pos]=0
+C[pos-1,pos]=1
+D[pos-1,pos]=1
+'''
+'''
+
+#name='TSXL_R_lawn2'
+fig, axs = plt.subplots(2,2,constrained_layout=True)
+
+#av = simulation(G,R,A,C,D,A0,0,par,width,dx,time,dt,"TSXLT",time,False)
+av = simulation(G,R,A,C,D,A0,0,par,width,dx,time,dt,"Repressilator",time,True)
+
+#plot2D_simple_tgh(av,-1,axs,0,0)
+plot2D_simple_tgh3(av,-1,axs,0,0)
+axs[0,1].imshow(av[-1,5,:,:],cmap="viridis") #, norm=LogNorm())
+axs[1,0].plot(av[-1,0,pos,pos].T,color="g")
+axs[1,0].plot(av[-1,1,pos,pos].T,color="r")
+axs[1,0].plot(av[-1,3,pos,pos].T,color="b")
+
+
+axs[1,1].plot(unitX,av[:,5,:,pos].T,color="m")
+axs[1,1].set_yscale("log")
+plt.show()
+plt.close()
+
+
+name ="rep_sta/"
+for t in np.arange(av.shape[0]):
+	fig, axs = plt.subplots(2,2,constrained_layout=True)
+	#plot2D_simple_tgh(av,t,axs,0,0)
+	plot2D_simple_tgh3(av,t,axs,0,0)
+
+	axs[0,1].imshow(av[t,5,:,:],cmap="viridis") #, norm=LogNorm())
+	#axs[1,0].plot(unitX,av[t,4,:,pos].T,color='k')
+	axs[1,0].plot(unitX,av[t,0,:,pos].T,color='g')
+	axs[1,0].plot(unitX,av[t,1,:,pos].T,color='r')
+	axs[1,0].plot(unitX,av[t,3,:,pos].T,color='b')
+
+	axs[1,1].plot(unitX,av[t,5,:,pos].T,color="m")
+	axs[1,1].set_yscale("log")
+	axs[1,1].set_ylim(1,100)
+	plt.savefig("Figures/timelapse/"+name+ str(t) +".png",dpi=300)
+	plt.close()
+
+stop
+'''
+
+
+######### TEST GROWTH, diffusion +  TSRD ... ####################
+
+'''
+dt=0.005
+time=20
+
 #dt=0.05
 
 par=par0
 par['beta_red']=1
-par['alpha_red']=0.001
+par['alpha_red']=0.1
 par['K_ahl_green']=1
 par['K_ahl_green']=1.5
 par['K_ahl_red']=1
-par['beta_green']=0
-par['alpha_green']=1
+par['beta_green']=1
+par['alpha_green']=0.1
 par['beta_ahl']=1
 par['K_ahl']=0
 
 #par=par_TSLT_mushroom
 
-par['D_ahl']=.000001 #mm/h
-par['D_ahl']=size/10/time #mm/h
+par['D_ahl']=0.1 #cm/h
+par['K_GREEN']=0.9
+par['K_RED']=1.2
+
+#par['D_ahl']=size/10/time #mm/h
 
 
 Tmatrx=[1,1,0]
-Vmatrx=[0,1.,1,1]
-Nmatrx=[0.2,0.2,0.2,0.]
-
-G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
-#G,R,A,C,D = init_colony(Vmatrx,width)
+Vmatrx=[1,0.,1,1]
+Nmatrx=[0.,0.,0.,0.]
 
 
-name='TSXL_R_lawn2'
+#G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
+G,R,A,C,D = init_colony(Vmatrx,width)
+
+A0= np.zeros(1)
+A0_bifu=np.logspace(-5,1,100)
+
+name='TSXLT_TEST2'
+
+fig, axs = plt.subplots(2,3,constrained_layout=True)
+
+bifu_plot_tgh(par,A0_bifu,axs,0,0)
+
+av = simulation(G,R,A,C,D,A0,0,par,width,dx,time,dt,"TSXLT",time,False)
+
+plot2D_simple_tgh(av,-1,axs,0,2)
+plot2D_kymograph_tgh(av,int(width/2), axs, 0,1)
+axs[1,1].plot(av[:,0,int(width/2),int(width/2)],'g')
+axs[1,1].plot(av[:,3,int(width/2),int(width/2)],'b')
+axs[1,1].plot(av[:,1,int(width/2),int(width/2)],'r')
+axs[1,2].plot(av[-1,0,:,int(width/2)],'g')
+axs[1,2].plot(av[-1,3,:,int(width/2)],'b')
+axs[1,2].plot(av[-1,1,:,int(width/2)],'r')
+
+ttype, e2=getTuringinstability(par,200)
+axs[1,0].axhline(y=0., xmin=0, xmax=200, c="k")
+axs[1,0].plot(e2[0,:,:])
+axs[1,0].set_yscale('symlog')
+
+
+axs[1,2].plot(av[-1,1,:,int(width/2)],'r')
+
+plt.savefig("Figures/"+name+".pdf",dpi=300)
 
 
 
+plt.show()
+
+
+stop
+'''
+
+###################
+
+
+'''
 p1='K_GREEN'
 kx = np.linspace(0.8,1.5,6)  #0,2
 #kx = np.linspace(0.,0.5,6)  #0,2
@@ -412,8 +547,6 @@ print(dt)
 
 
 #A0=np.ones((width,width))*A0_bifu[:,np.newaxis]
-
-
 A0_bifu=np.logspace(-3,0.,width)
 
 fig, axs = plt.subplots(len(kx),len(ky)+1,constrained_layout=True)
@@ -448,6 +581,7 @@ stop
 
 
 
+
 '''
 ====================================================================================================================================
 
@@ -457,6 +591,10 @@ still in progress
 
 ======================================================================================================================================
 '''
+
+############3
+# par space
+###################
 
 '''
 filename="MAP_TuringInstability/type1"
@@ -474,26 +612,28 @@ plt.savefig("Figures/"+"type3_"+"TI_Parplot.pdf",dpi=300)
 plt.show()
 
 '''
+
+############3
+# Eigens map
+###################
+
 '''
 filename="MAP_TuringInstability/type1"
-p,df=load(filename,parlist)
-p0=pars_to_dict(p[8],parlist) #
-#p0
+p,df=loadTI(filename,parlist)
+#p0=pars_to_dict(p[8],parlist) #
+p0=p[8]
+print(p0)
 par=addfixedpar(p0)
-
-
 ttype, e2=getTuringinstability(par,200)
 A0=np.zeros(1)
 e2 = TuringInstability(A0,par,200)
-print(e2.shape)
 plt.axhline(y=0., xmin=0, xmax=200, c="k")
 plt.plot(e2[0,0,0,:,:])
 plt.yscale('symlog')
+plt.savefig("Figures/"+"type1_"+"plot.pdf",dpi=300)
 plt.show()
-
-stop
-
 '''
+
 
 
 
@@ -653,8 +793,8 @@ sys.path.insert(0, 'C:/Users/Administrator/Desktop/Modeling/TSReactionDiffusion/
 import model_fit as meq
 parlist=meq.parlist
 
-n=['43']
 #n=['26']
+n=['48']
 
 
 gg,gr,rr,rg=meq.Get_data(datafile)
@@ -662,54 +802,123 @@ AHL=gg.index.values
 IPTG=gg.columns.values
 p, df= load(n[0],filename,meq.parlist)
 p0=p[0]
+print(p0)
+pmedian=pars_to_dict(np.array(df.median().tolist()[:-1]),parlist)
+
+
+#p0['delta_red']=1
+#p0['delta_green']=1
 
 
 
-p0['D_ahl']=0.1#0.010
-p0['beta_ahl']=0#-1.5
-
+p0['D_ahl']=1#0.010
+p0['beta_ahl']=-100.5#-1.5
 p0['delta_ahl']=1
 p0['K_ahl']=0
 p0['n_ahl']=1.00
 
 
-'''
+
+###########
 #PARPLOT
+###########
+'''
 par_plot(df,parlist)
 plt.savefig(filename+"/plot/"+str(n[0])+"_parspace.pdf", dpi=300)
 plt.show()
 '''
 
-'''
+###########
 #COMPARE PLOT
+###########
 
-#compare_plot([p[0]],filename,meq,datafile,modeltype,lw=1.5)
+'''
+compare_plot([p[0]],filename,meq,datafile,modeltype,lw=1.5)
+plt.savefig(filename+"/plot/"+str(n[0])+'p0_plot.pdf', bbox_inches='tight',dpi=300)
+plt.show()
+compare_plot([pmedian],filename,meq,datafile,modeltype,lw=1.5)
+plt.savefig(filename+"/plot/"+str(n[0])+'pmedian_plot.pdf', bbox_inches='tight',dpi=300)
+plt.show()
+
 compare_plot(p,filename,meq,datafile,modeltype,lw=.5)
 plt.savefig(filename+"/plot/"+str(n[0])+'_plot.pdf', bbox_inches='tight',dpi=300)
 plt.show()
 '''
 
+
+###########
+#COMPARE PLOT from TSLT to TSXLT
+###########
+#doesnt' work yet
+#modeltype="TSXLT"
+#datafile = 'data/'+modeltype + '/' +data
+p0['K_RED']=-0.5
+compare_plot([p0],filename,meq,datafile,modeltype,lw=1.5)
+plt.savefig(filename+"/plot/"+str(n[0])+'_TESTplot.pdf', bbox_inches='tight',dpi=300)
+plt.show()
+stop
+
+###########
+#BIFUPLOT 2D
+###########
+
 '''
-#BIFUPLOT
 gg,gr,rr,rg=meq.Get_data(datafile)
 AHL=gg.index.values
 IPTG=gg.columns.values
 fig, axs = plt.subplots(2,2,constrained_layout=True)
-bifu_2Dplot_IPTG(AHL,p0,axs,0,0,IPTG,p,meq,"TSXLT")
-size=50
-AHL=np.logspace(-5,1,size)
-IPTG=np.logspace(-2,1,size)
-bifu_2Dplot_IPTG(AHL,p0,axs,1,0,IPTG,p,meq,"TSXLT")
+bifu_2Dplot_IPTG(AHL,p0,axs,0,0,IPTG,p,meq,"TSXLT",1)
+size=200
+AHL=np.logspace(-6,0,size)
+AHL=np.logspace(-4,0,size)
+
+
+IPTG=np.logspace(-2.5,1,size)
+IPTG=np.logspace(-5,1,size)
+
+bifu_2Dplot_IPTG(AHL,p0,axs,1,0,IPTG,p,meq,"TSXLT",1)
+
+AHL=np.logspace(-6,0,size)
+AHL=np.logspace(-4,0,size)
+
+IPTG=np.logspace(-5,0,size)
+bifu_2Dplot_IPTG(AHL,p0,axs,1,1,IPTG,p,meq,"TSXLT",1)
+
 plt.savefig(filename+"/plot/"+str(n[0])+'_bifuDiag.pdf', bbox_inches='tight',dpi=300)
 plt.show()
 '''
 
+###########
+#BIFUPLOT 1D
+###########
+'''
+gg,gr,rr,rg=meq.Get_data(datafile)
+AHL=gg.index.values
+IPTG=gg.columns.values
+size=6
+fig, axs = plt.subplots(size,2,constrained_layout=True, figsize=(4,size))
+AHL=np.logspace(-6,0,200)
+#IPTG=np.logspace(-2.5,0,size)
+#size=20
+#IPTG=np.logspace(-0.2,0.2,size)
+bifu_plot_fit(p0,AHL,IPTG,axs,0,0,meq,"TSXLT")
+plt.savefig(filename+"/plot/"+str(n[0])+'_bifucurve1.pdf', bbox_inches='tight',dpi=300)
+plt.show()
+'''
+
+
+
+###########
 #TURING Instability
+###########
 
-
-
-
-
+gg,gr,rr,rg=meq.Get_data(datafile)
+AHL=gg.index.values
+IPTG=gg.columns.values
+TI_plot_fit(AHL,IPTG,p0,meq)
+plt.savefig(filename+"/plot/"+str(n[0])+'_p0TI.pdf', bbox_inches='tight',dpi=300)
+plt.show()
+stop
 
 
 '''

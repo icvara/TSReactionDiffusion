@@ -7,6 +7,7 @@ Script to find Turing instability
 '''
 
 import numpy as np
+import pandas as pd
 import time
 import multiprocessing
 from functools import partial
@@ -71,7 +72,7 @@ def addfixedpar(par):
     par['delta_red']=1
     par['delta_green']=1
     par['delta_ahl']=1
-    par['D_ahl']=1
+   # par['D_ahl']=1
     par['K_IPTG']=0
     par['n_GREEN']=2
     par['n_RED']=2
@@ -207,8 +208,6 @@ def GeneratePars(parlist, ncpus,Npars=1000):
 
 
 
-
-
 def loadTI(name,parlist):
     tutype= np.loadtxt(name+"_turingtype.out")
     p= np.loadtxt(name+"_par.out")
@@ -219,8 +218,15 @@ def loadTI(name,parlist):
     df = pd.DataFrame(p, columns = namelist)
     df['tutype']=tutype
     df=df.sort_values(by='tutype', ascending=False)
-    return df
+    
+    p=[]
 
+    for i in np.arange(len(df)):
+        p0=df.loc[i].tolist()
+        p.append(pars_to_dict(p0,parlist))
+
+    
+    return p, df 
 
 def run(name,Npars=5000,ncpus=40):
     par,tutype=GeneratePars(parlist, ncpus,Npars=Npars)

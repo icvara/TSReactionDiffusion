@@ -111,17 +111,17 @@ def simulation(G,R,A,C,D,A0,IPTG,par,width,dx,time,dt,model = "TSXLT",tt=1,stati
 				Ri += dt*r*(Ci - stat_effect)
 				Ai += dt*b*(Ci - stat_effect)
 
-				gh,rh,bh =heredity(Gi,Ri,Ai,Ci,gcell,width)
-				Ci[gcell[:,0,0],gcell[:,0,1]]=1
-				Di[gcell[:,0,0],gcell[:,0,1]]=1
-				Gi += gh
-				Ri += rh
-				Ai += bh
-				av[ti,0]=Gi 
-				av[ti,1]=Ri
-				av[ti,2]=Ai 
-				av[ti,3]=Ci
-				av[ti,4]=Di
+				#gh,rh,bh =heredity(Gi,Ri,Ai,Ci,gcell,width)
+				#Ci[gcell[:,0,0],gcell[:,0,1]]=1
+				#Di[gcell[:,0,0],gcell[:,0,1]]=1
+				#Gi += gh
+				#Ri += rh
+				#Ai += bh
+				#av[ti,0]=Gi 
+				#av[ti,1]=Ri
+				#av[ti,3]=Ai 
+				#av[ti,4]=Ci
+				#av[ti,5]=Di
 
 			#4. add new cells
 			if len(gcell)>0:
@@ -142,8 +142,6 @@ def simulation(G,R,A,C,D,A0,IPTG,par,width,dx,time,dt,model = "TSXLT",tt=1,stati
 				av[ti,3]=Ai 
 				av[ti,4]=Ci
 				av[ti,5]=Di 
- 
-
 
 			ti += 1
 	if store == False:

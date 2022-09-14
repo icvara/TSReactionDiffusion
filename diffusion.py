@@ -13,14 +13,10 @@ https://hplgit.github.io/fdm-book/doc/pub/book/sphinx/._book011.html
 import numpy as np
 import matplotlib.pyplot as plt
 
-dx_diffusion=0.5
 
-def laplacian1D(a, dx):
-    return (
-        - 2 * a
-        + np.roll(a,1,axis=0) 
-        + np.roll(a,-1,axis=0)
-    ) / (dx ** 2)
+def diffusion2D(ui,D,dx,dt):
+    ud = laplacian2D(ui, dx)
+    return dt * (D * ud)
 
 
 def laplacian2D(a, dx):
@@ -34,13 +30,18 @@ def laplacian2D(a, dx):
 
 
 
+def laplacian1D(a, dx):
+    return (
+        - 2 * a
+        + np.roll(a,1,axis=0) 
+        + np.roll(a,-1,axis=0)
+    ) / (dx ** 2)
+
+
 def diffusion1D(ui,D,dx,dt):
 	ud = laplacian1D(ui, dx)
 	return dt * (D * ud)
 
-def diffusion2D(ui,D,dx,dt):
-    ud = laplacian2D(ui, dx)
-    return dt * (D * ud)
 
 def increase_matrix(A0,dx,dx_diffusion):
     time=int(dx_diffusion/dx)

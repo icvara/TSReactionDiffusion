@@ -93,6 +93,22 @@ def bestMatrix(G,R):
 	Rm[idxR]=R[idxR]
 	return Gm,Rm
 
+def bestMatrix3(G,R,B):
+
+	idxG=np.where(G>B)
+	idxR=np.where(R>G)
+	idxB=np.where(B>R)
+
+	Gm=np.ones(G.shape)*np.nan
+	Rm=np.ones(R.shape)*np.nan
+	Bm=np.ones(B.shape)*np.nan
+
+	Gm[idxG]=G[idxG]
+	Rm[idxR]=R[idxR]
+	Bm[idxB]=B[idxB]
+
+	return Gm,Rm,Bm
+
 def plot2D_simple(av,tt, axs, i, j, n=5):
 	colorlist=['Greens','Reds','Blues','Greys','viridis']
 	maxV=1
@@ -120,8 +136,27 @@ def plot2D_simple_tgh(av,tt, axs, i, j):
 	vmaxG=np.nanmax(Gm)
 	vmaxR=np.nanmax(Rm)
 
-	axs[i,j].imshow(Gm,cmap=colorlist[0],alpha=1, aspect="auto",vmin=0,vmax=vmaxG)
-	axs[i,j].imshow(Rm,cmap=colorlist[1],alpha=1, aspect="auto",vmin=0,vmax=vmaxR)#vmin=0,vmax=1
+	axs[i,j].imshow(Gm,cmap=colorlist[0],alpha=1,vmin=0,vmax=vmaxG)
+	axs[i,j].imshow(Rm,cmap=colorlist[1],alpha=1,vmin=0,vmax=vmaxR)#vmin=0,vmax=1
+
+	return axs
+
+
+def plot2D_simple_tgh3(av,tt, axs, i, j):
+
+	colorlist=['Greens','Reds','Blues','Greys','viridis']
+	Gm,Rm,Bm = bestMatrix3 (av[tt,0],av[tt,1],av[tt,3])
+	vmaxG=np.nanmax(Gm)
+	vmaxR=np.nanmax(Rm)
+	vmaxB=np.nanmax(Bm)
+	
+	axs[i,j].imshow(Bm,cmap=colorlist[2],alpha=1,vmin=0,vmax=1)#vmin=0,vmax=1
+	axs[i,j].imshow(Gm,cmap=colorlist[0],alpha=1,vmin=0,vmax=1)
+	axs[i,j].imshow(Rm,cmap=colorlist[1],alpha=1,vmin=0,vmax=1)#vmin=0,vmax=1
+	
+	#axs[i,j].imshow(av[tt,3],cmap=colorlist[2],alpha=1)#vmin=0,vmax=vmaxB)#vmin=0,vmax=1
+	#axs[i,j].imshow(av[tt,0],cmap=colorlist[0],alpha=0.5)#,vmin=0,vmax=vmaxG)
+	#axs[i,j].imshow(av[tt,1],cmap=colorlist[1],alpha=0.5)#vmin=0,vmax=vmaxR)#vmin=0,vmax=1
 
 	return axs
 
@@ -132,8 +167,8 @@ def plot2D_kymograph_tgh(av,w, axs, i, j):
 
 
 	colorlist=['Greens','Reds','Blues','Greys','viridis']
-	axs[i,j].imshow(Gm,cmap=colorlist[0],alpha=1,aspect='auto',vmin=0,vmax=vmaxG)
-	axs[i,j].imshow(Rm,cmap=colorlist[1],alpha=1,aspect='auto',vmin=0,vmax=vmaxR)
+	axs[i,j].imshow(Gm.T,cmap=colorlist[0],alpha=1,aspect='auto',vmin=0,vmax=vmaxG)
+	axs[i,j].imshow(Rm.T,cmap=colorlist[1],alpha=1,aspect='auto',vmin=0,vmax=vmaxR)
 	return axs
 
 
@@ -217,11 +252,13 @@ def test_diffusion(name):
 	    'K_IPTG':1
     }
 
-	time=10#20
-	dt=0.001
-	size=10 
-	dx=0.1
+	time=100#20
+	dt=0.005
+	size=4
+	dx=0.05
 	width=int(size/dx)
+	pos=int(width/2)
+
 
 	par_growth['H_growth']=0
 
@@ -232,45 +269,79 @@ def test_diffusion(name):
 	D=np.ones((width,width))*0
 	A0=np.zeros(1)
 	IPTG=np.zeros(1)
-	fig, axs = plt.subplots(1,2,constrained_layout=True)
+	fig, axs = plt.subplots(1,3,constrained_layout=True, figsize=(12,4))
 
 	#colist=['k','r','g','b','m']
 
 
-	#k=np.logspace(0,-3,4)
-	k=np.linspace(0,2,10)
-	nx=25
+	k=np.logspace(-1,-2,4)
+	k=[0.1]
+	#k= 5*10**-6 *3600  #cm2/s -> cm2/h	4.9 x 10‑6 cm2/s	AHL diffusion constant	Stewart P.S., 2003 , this values seems to slow
+	#k=np.linspace(0,1,5)
+	nx=int(1/dx)
+	x1= np.arange(1,nx)*2 *dx
 	for c,Dif in enumerate(k):
 		center=[]
 		border=[]
+		AHLdist=[]
 		p['D_ahl']=Dif
-		for x in np.arange(nx):
-			pos=int(width/2)
-			for i in np.arange(-x,x+1):
-				for j in np.arange(-x,x+1):
+		for x in np.arange(1,nx):
+			#for i in np.arange(-x,x+1):
+			#	for j in np.arange(-x,x+1):
+			C=np.ones((width,width))*0
+			G=np.ones((width,width))*0
+			R=np.ones((width,width))*0
+			A=np.ones((width,width))*0
+			C=np.ones((width,width))*0
+			D=np.ones((width,width))*0
 
-					C[pos+i,pos+j]=1
-					D[pos+i,pos+j]=1
-					G[pos+i,pos+j]=1
-					R[pos+i,pos+j]=0.01
+
+			index=drawcircle(x,C,[pos,pos])
+			C[index[:,0,0],index[:,0,1]]=1
+			D[index[:,0,0],index[:,0,1]]=1
+			G[index[:,0,0],index[:,0,1]]=1
+			R[index[:,0,0],index[:,0,1]]=0.01
+
+					#C[pos+i,pos+j]=1
+					#D[pos+i,pos+j]=1
+					#G[pos+i,pos+j]=1
+					#R[pos+i,pos+j]=0.01
 
 			av=simulation(G,R,A,C,D,A0,IPTG,p,width,dx,time,dt,"TSXLT",time,False,False)
 			center.append(av[-1,3,pos,pos])
-			border.append(av[-1,3,pos,pos] - av[-1,3,pos-x,pos])
+			border.append(av[-1,3,pos,pos]-av[-1,3,pos+1-x,pos])
+			#AHLdist.append(av[-1,3,pos,:])
+		#for l in AHLdist:
+			axs[2].plot(av[-1,4,pos,:],color=color[c])
 
-		x1= np.arange(nx)*2
+			axs[2].plot(av[-1,3,pos,:],color=color[c])
+
+
+
 		axs[0].plot(x1,center,'-o',color=color[c])
-		x2= x1 +1
-		axs[1].plot(x2,border,'-o',color=color[c])
+		axs[1].plot(x1,border,'-o',color=color[c])
 
-	axs[0].set_xlabel("number of neighbour")
-	axs[0].set_ylabel("AHL")
-	axs[1].set_xlabel("Colony size")
+
+
+	axs[0].set_xlabel("Colony size [cm]")
+	axs[1].set_title("duration[h]" + str(time) + " with " + str(dt)  + " dt " + str(dx) + " dx")
+	axs[0].set_ylabel("AHL at center")
+	axs[1].set_xlabel("Colony size [cm]")
 	axs[1].set_ylabel("AHL center - AHL border")
 	axs[1].legend( k, loc=0)
 	plt.savefig("Figures/"+name+"_testDiffusion.pdf",dpi=300)
 	plt.show()
 
+
+def drawcircle(r,c0,center):
+	centerx=center[0]
+	centery=center[1]
+	emptycell = np.argwhere(c0==0)
+	dist = np.sqrt(np.power(emptycell[:,0]-centerx,2)+np.power(emptycell[:,1]-centery,2))
+	insidecircle =  np.argwhere(dist<r)
+	idx=emptycell[insidecircle]
+	#c0[insidecircle]=1
+	return idx
 
 
 '''
@@ -612,6 +683,8 @@ def compare_plot(p,filename,meq,datafile,modeltype,lw=0.4):
                 axs[ii,1].plot(A,m[:,ii,1],'--',c=colorPurple,linewidth=lw)
                               
                 axs[ii,0].set_ylim(ymin=mini-0.15*mini,ymax=maxi+.15*maxi)
+                axs[ii,1].set_ylim(ymin=mini-0.15*mini,ymax=maxi+.15*maxi)
+
 
                
         for ii,i in enumerate(I):
@@ -654,7 +727,7 @@ def bifu_plot_fit(par,A0,I0,axs,i,j,meq,model):
 							m='o'
 							axs[i+ipi,j].plot(np.log10(a),sss[0],m, c=colorGREEN ,markersize=1)
 							axs[i+ipi,j+1].plot(np.log10(a),sss[2],m, c=colorRED, markersize=1.)
-							axs[i+ipi,j+2].plot(np.log10(a),sss[3],m, c= colorBLUE ,markersize=1.)
+							#axs[i+ipi,j+2].plot(np.log10(a),sss[3],m, c= colorBLUE ,markersize=1.)
 
 
 					elif np.any(er>0): #unstable
@@ -665,17 +738,17 @@ def bifu_plot_fit(par,A0,I0,axs,i,j,meq,model):
 								m='o'
 								axs[i+ipi,j+0].plot(np.log10(a),sss[0],m+'m',markersize=1.)
 								axs[i+ipi,j+1].plot(np.log10(a),sss[2],m+'m',markersize=1.)
-								axs[i+ipi,j+2].plot(np.log10(a),sss[3],m+'m',markersize=1.)
+								#axs[i+ipi,j+2].plot(np.log10(a),sss[3],m+'m',markersize=1.)
 							else:
 								m='x'
 								axs[i+ipi,j].plot(np.log10(a),sss[0],m+'k',markersize=1.)
 								axs[i+ipi,j+1].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-								axs[i+ipi,j+2].plot(np.log10(a),sss[3],m+'k',markersize=1.)
+								#axs[i+ipi,j+2].plot(np.log10(a),sss[3],m+'k',markersize=1.)
 						else:
 								m='x'
 								axs[i+ipi,j].plot(np.log10(a),sss[0],m+'k',markersize=1.)
 								axs[i+ipi,j+1].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-								axs[i+ipi,j+2].plot(np.log10(a),sss[3],m+'k',markersize=1.)
+								#axs[i+ipi,j+2].plot(np.log10(a),sss[3],m+'k',markersize=1.)
 
 	#axs[i,j].set_ylim(-0.1,1.1)
 	#axs[i,j+1].set_ylim(-0.1,1.1)
@@ -703,6 +776,8 @@ def bifu_2Dplot_IPTG(A0,par,axs,i,j,IPTG,p,meq,modeltype,l=2):
 	mono_matrix=c
 	mono_green=ss[:,:,0,0]#-minvalues)/(maxvalues-minvalues)
 	mono_red=ss[:,:,0,l]#-minvalues)/(maxvalues-minvalues)
+
+	mono_green, mono_red = bestMatrix(mono_green,mono_red)
 	oscil_matrix=c_oscil
 
 	mono_matrix[mono_matrix==1]=np.nan
@@ -712,7 +787,7 @@ def bifu_2Dplot_IPTG(A0,par,axs,i,j,IPTG,p,meq,modeltype,l=2):
 
 	
 	axs[i,j].imshow(mono_red.T,aspect="auto", cmap="Reds")#vmin=minvalues,vmax=maxvalues, alpha=1)
-	axs[i,j].imshow(mono_green.T,aspect="auto", cmap="Greens", alpha=0.6)#,vmin=minvalues,vmax=maxvalues, alpha=0.7)
+	axs[i,j].imshow(mono_green.T,aspect="auto", cmap="Greens", alpha=1)#,vmin=minvalues,vmax=maxvalues, alpha=0.7)
 	axs[i,j].imshow(mono_matrix.T,aspect="auto", cmap="Blues", vmin=2,vmax=3)# vmin=1,vmax=5)
 	#axs[i,j].imshow(oscil_matrix.T,aspect="auto", cmap="Greys", vmin=0,vmax=1)# vmin=1,vmax=5)
 	a=np.argwhere(oscil_matrix.T==1)
@@ -740,7 +815,34 @@ def bifu_2Dplot_IPTG(A0,par,axs,i,j,IPTG,p,meq,modeltype,l=2):
 	'''
 
 	return axs
+
+
+
+def TI_plot_fit(AHL,IPTG,p0,meq):
+	nm=100
+	ee=meq.TuringInstability(AHL,IPTG,p0,nm,"TSXLT")
+	fig, axs = plt.subplots(6,6,constrained_layout=True, figsize=(10,6))
+	col= ['r','g','b','y','m']
+	x=np.arange(nm)
+	for ai,a in enumerate(AHL):
+		for ii,i in enumerate(IPTG):
+
+			for s in np.arange(5):
+
+
+				axs[ai,ii].plot(x,ee.real[ai,ii,s,:,:],color=col[s])
+			#axs[ai,ii].plot(x,ee.real[ai,ii,:,s,1].T)
+			#axs[ai,ii].plot(x,ee.real[ai,ii,:,s,2].T)
+			axs[ai,ii].set_yscale("symlog")
+			axs[ai,ii].axhline(y=0,color='k')
+
+			#axs[ai,ii].set_ylim(-0.00001,0.00001)
+	return axs
+
+
 '''
+
+
 
 ======================================================================================================================================================================================================================================================================
 

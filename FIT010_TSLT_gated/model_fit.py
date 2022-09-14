@@ -446,14 +446,19 @@ def getEigen(ss,A0,I0,par,model="TSXLT"):
     return sse #, np.trace(A), np.linalg.det(A)
 
 
-def TuringInstability(A0,par,n=100,model="TSXLT"):
+def TuringInstability(A0,I0,par,n=100,model="TSXLT"):
     if model !="TSXLT":
         return 0
-    I=0
     q=np.linspace(0,20,n)#100
-    ss=findss(A0,[I],par)
-    J=jacobianMatrix(ss,par,A0,model)
-    JE=np.ones((len(A0),len([I]),ss.shape[2],n,3,3))*np.nan
+
+
+    ss=findss(A0,I0,par,model)
+    #J=jacobianMatrix(ss,par,A0,model)
+    A=A0[:,np.newaxis,np.newaxis]
+    I=I0[np.newaxis,:,np.newaxis]
+    J=approximateJacob(ss[:,:,:,0]-10**par['basal_green'],ss[:,:,:,2],ss[:,:,:,1]-10**par['basal_red'],ss[:,:,:,3],A,I,par)
+
+    JE=np.ones((len(A0),len(I0),ss.shape[2],n,3,3))*np.nan
     JE[:,:,:,:,:,:]=np.copy(J[:,:,:,np.newaxis,:,:])
     #JE=np.ones((len(A0),len([I]),5,3,3,20))*np.copy(J)
 
