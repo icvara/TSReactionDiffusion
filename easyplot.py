@@ -84,24 +84,36 @@ def generate_gif(av):
 
 def bestMatrix(G,R):
 
+	Mm=np.ones(G.shape)*0#np.nan
+	#Rm=np.ones(R.shape)*0#np.nan
 
-	idxG=np.where(G>R)
-	idxR=np.where(G<R)
-	Gm=np.ones(G.shape)*np.nan
-	Rm=np.ones(R.shape)*np.nan
-	Gm[idxG]=G[idxG]
-	Rm[idxR]=R[idxR]
-	return Gm,Rm
+	for i in np.arange(G.shape[0]):
+		for j in np.arange(G.shape[1]):
+			if np.isnan(G[i,j])==False:
+				if G[i,j]>R[i,j]:
+					Mm[i,j]=G[i,j]
+				elif G[i,j]<R[i,j]:
+					Mm[i,j]=R[i,j]*-1
+				elif G[i,j]==R[i,j]:
+					Mm[i,j]=0#R[i,j]
+
+
+
+	return Mm
 
 def bestMatrix3(G,R,B):
+
+	Gm=np.ones(G.shape)*np.nan
+	Rm=np.ones(R.shape)*np.nan
+	Bm=np.ones(B.shape)*np.nan
+
+
 
 	idxG=np.where(G>B)
 	idxR=np.where(R>G)
 	idxB=np.where(B>R)
 
-	Gm=np.ones(G.shape)*np.nan
-	Rm=np.ones(R.shape)*np.nan
-	Bm=np.ones(B.shape)*np.nan
+
 
 	Gm[idxG]=G[idxG]
 	Rm[idxR]=R[idxR]
@@ -125,19 +137,24 @@ def plot2D_kymograph(av,w, axs, i, j,n=1):
 	for ni in np.arange(n):
 			if ni == 4:
 				maxV=100
-			axs[i,j+ni].imshow(av[:,ni,:,w].T,cmap=colorlist[ni],aspect='auto',vmin=0,vmax=maxV)
+			axs[i,j+ni].imshow(av[:,ni,:,w].T,cmap=colorlist[ni],aspect='auto')#,vmin=0,vmax=maxV)
 	return axs
 
 
 def plot2D_simple_tgh(av,tt, axs, i, j):
 
 	colorlist=['Greens','Reds','Blues','Greys','viridis']
-	Gm,Rm = bestMatrix (av[tt,0],av[tt,1])
-	vmaxG=np.nanmax(Gm)
-	vmaxR=np.nanmax(Rm)
+	Mm = bestMatrix (av[tt,0],av[tt,1])
+	NN=Mm.copy()
+	NN[NN!=0]=np.nan
 
-	axs[i,j].imshow(Gm,cmap=colorlist[0],alpha=1,vmin=0,vmax=vmaxG)
-	axs[i,j].imshow(Rm,cmap=colorlist[1],alpha=1,vmin=0,vmax=vmaxR)#vmin=0,vmax=1
+
+	axs[i,j].imshow(Mm,cmap="RdYlGn",alpha=1,vmin=-100,vmax=100)#,vmin=0,vmax=vmaxG)
+
+	#axs[i,j].imshow(NN,cmap="Greys",alpha=1)#,vmin=0,vmax=vmaxG)
+
+	#axs[i,j].imshow(Rm,cmap=colorlist[1],alpha=0.5)#,vmin=0,vmax=vmaxG)
+
 
 	return axs
 
@@ -161,14 +178,13 @@ def plot2D_simple_tgh3(av,tt, axs, i, j):
 	return axs
 
 def plot2D_kymograph_tgh(av,w, axs, i, j):
-	Gm,Rm = bestMatrix (av[:,0,w,:],av[:,1,w,:])
-	vmaxG=np.nanmax(Gm)
-	vmaxR=np.nanmax(Rm)
+	Mm = bestMatrix (av[:,0,:,w],av[:,1,:,w])
+
 
 
 	colorlist=['Greens','Reds','Blues','Greys','viridis']
-	axs[i,j].imshow(Gm.T,cmap=colorlist[0],alpha=1,aspect='auto',vmin=0,vmax=vmaxG)
-	axs[i,j].imshow(Rm.T,cmap=colorlist[1],alpha=1,aspect='auto',vmin=0,vmax=vmaxR)
+	axs[i,j].imshow(Mm.T,cmap="RdYlGn",alpha=1,aspect='auto')
+	#axs[i,j].imshow(Rm.T,cmap=colorlist[1],alpha=1,aspect='auto')
 	return axs
 
 
@@ -378,8 +394,8 @@ def bifu_plot(par,A0,axs,i,j):
 					#node
 						m='o'
 						axs[i,j].plot(np.log10(a),sss[0],m, c=colorGREEN ,markersize=1)
-						axs[i,j+1].plot(np.log10(a),sss[1],m, c=colorRED, markersize=1.)
-						axs[i,j+2].plot(np.log10(a),sss[2],m, c= colorBLUE ,markersize=1.)
+						axs[i,j].plot(np.log10(a),sss[1],m, c=colorRED, markersize=1.)
+						#axs[i,j+2].plot(np.log10(a),sss[2],m, c= colorBLUE ,markersize=1.)
 
 
 				elif np.any(er>0): #unstable
@@ -389,22 +405,22 @@ def bifu_plot(par,A0,axs,i,j):
 							#oscilation
 							m='o'
 							axs[i,j+0].plot(np.log10(a),sss[0],m+'m',markersize=1.)
-							axs[i,j+1].plot(np.log10(a),sss[1],m+'m',markersize=1.)
-							axs[i,j+2].plot(np.log10(a),sss[2],m+'m',markersize=1.)
+							axs[i,j].plot(np.log10(a),sss[1],m+'m',markersize=1.)
+							#axs[i,j+2].plot(np.log10(a),sss[2],m+'m',markersize=1.)
 						else:
 							m='x'
 							axs[i,j].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-							axs[i,j+1].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-							axs[i,j+2].plot(np.log10(a),sss[2],m+'k',markersize=1.)
+							axs[i,j].plot(np.log10(a),sss[1],m+'k',markersize=1.)
+							#axs[i,j+2].plot(np.log10(a),sss[2],m+'k',markersize=1.)
 					else:
 							m='x'
 							axs[i,j].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-							axs[i,j+1].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-							axs[i,j+2].plot(np.log10(a),sss[2],m+'k',markersize=1.)
+							axs[i,j].plot(np.log10(a),sss[1],m+'k',markersize=1.)
+							#axs[i,j+2].plot(np.log10(a),sss[2],m+'k',markersize=1.)
 
-	axs[i,j].set_ylim(-0.1,1.1)
-	axs[i,j+1].set_ylim(-0.1,1.1)
-	axs[i,j+2].set_ylim(-0.1,1.1)
+	#axs[i,j].set_ylim(-0.1,1.1)
+	#axs[i,j+1].set_ylim(-0.1,1.1)
+	#axs[i,j+2].set_ylim(-0.1,1.1)
 
 	return axs
 
@@ -757,13 +773,130 @@ def bifu_plot_fit(par,A0,I0,axs,i,j,meq,model):
 	return axs
 
 
+def bifu_plot_fit_tgh(par,A0,I0,axs,i,j,meq,model):
+	#A0[0]=0
+	colors = [colorBLUE, colorGREEN] # first color is black, last is red
+
+
+	ss=meq.findss(A0,I0,par,model)
+	sse=meq.getEigen(ss,A0,I0, par)
+	
+
+	for ai,a in enumerate(A0):
+		for ipi,ip in enumerate(I0):
+
+			for si in np.arange(0,ss.shape[2]):
+				e=sse[ai,ipi,si,:]
+				er=e.real
+				ei=e.imag
+				
+				sss=ss[ai,ipi,si,:]
+
+
+				if np.all(er!=0): 
+					#print(sse)
+					if np.all(er<0): #stable
+						#if np.all(ei==0):
+						#node
+							m='o'
+							axs[i+ipi,j].plot(np.log10(a),sss[0],m, c=colorGREEN ,markersize=1)
+							axs[i+ipi,j].plot(np.log10(a),sss[2],m, c=colorRED, markersize=1.)
+							#axs[i+ipi,j].plot(np.log10(a),sss[3],m, c= colorBLUE ,markersize=1.)
+
+
+					elif np.any(er>0): #unstable
+						#check complex conjugate
+						if len(er) != len(set(er)):
+							if np.any(ei==0) and len(ei) != len(set(np.abs(ei))):
+								#oscilation
+								m='o'
+								axs[i+ipi,j+0].plot(np.log10(a),sss[0],m+'m',markersize=1.)
+								axs[i+ipi,j].plot(np.log10(a),sss[2],m+'m',markersize=1.)
+								#axs[i+ipi,j].plot(np.log10(a),sss[3],m+'m',markersize=1.)
+							else:
+								m='x'
+								axs[i+ipi,j].plot(np.log10(a),sss[0],m,c=colorGREEN,markersize=1.)
+								axs[i+ipi,j].plot(np.log10(a),sss[2],m,c=colorRED,markersize=1.)
+								#axs[i+ipi,j].plot(np.log10(a),sss[3],m+'k',markersize=1.)
+						else:
+								m='x'
+								axs[i+ipi,j].plot(np.log10(a),sss[0],m+'k',markersize=1.)
+								axs[i+ipi,j].plot(np.log10(a),sss[2],m+'k',markersize=1.)
+								#axs[i+ipi,j].plot(np.log10(a),sss[3],m+'k',markersize=1.)
+
+	#axs[i,j].set_ylim(-0.1,1.1)
+	#axs[i,j+1].set_ylim(-0.1,1.1)
+	#axs[i,j+2].set_ylim(-0.1,1.1)
+
+
+	return axs
+
+
+def bifu_plot_fit_tgh2(par,A0,I0,axs,i,j,meq,model):
+	#A0[0]=0
+	colors = [colorBLUE, colorGREEN] # first color is black, last is red
+
+
+	ss=meq.findss(A0,I0,par,model)
+	sse=meq.getEigen(ss,A0,I0, par)
+	
+
+	for ai,a in enumerate(A0):
+		for ipi,ip in enumerate(I0):
+
+			for si in np.arange(0,ss.shape[2]):
+				e=sse[ai,ipi,si,:]
+				er=e.real
+				ei=e.imag
+				
+				sss=ss[ai,ipi,si,:]
+				sss[0]=sss[0]-10**par['basal_green']
+
+
+				if np.all(er!=0): 
+					#print(sse)
+					if np.all(er<0): #stable
+						#if np.all(ei==0):
+						#node
+							m='o'
+							axs[i+ai,j].plot(np.log10(ip),sss[0],m, c=colorGREEN ,markersize=1)
+							axs[i+ai,j].plot(np.log10(ip),sss[2],m, c=colorRED, markersize=1.)
+							#axs[i+ipi,j].plot(np.log10(a),sss[3],m, c= colorBLUE ,markersize=1.)
+
+
+					elif np.any(er>0): #unstable
+						#check complex conjugate
+						if len(er) != len(set(er)):
+							if np.any(ei==0) and len(ei) != len(set(np.abs(ei))):
+								#oscilation
+								m='o'
+								axs[i+ai,j+0].plot(np.log10(ip),sss[0],m+'m',markersize=1.)
+								axs[i+ai,j].plot(np.log10(ip),sss[2],m+'m',markersize=1.)
+								#axs[i+ipi,j].plot(np.log10(a),sss[3],m+'m',markersize=1.)
+							else:
+								m='x'
+								axs[i+ai,j].plot(np.log10(ip),sss[0],m,c=colorGREEN,markersize=1.)
+								axs[i+ai,j].plot(np.log10(ip),sss[2],m,c=colorRED,markersize=1.)
+								#axs[i+ipi,j].plot(np.log10(a),sss[3],m+'k',markersize=1.)
+						else:
+								m='x'
+								axs[i+ai,j].plot(np.log10(ip),sss[0],m+'k',markersize=1.)
+								axs[i+ai,j].plot(np.log10(ip),sss[2],m+'k',markersize=1.)
+								#axs[i+ipi,j].plot(np.log10(a),sss[3],m+'k',markersize=1.)
+
+	#axs[i,j].set_ylim(-0.1,1.1)
+	#axs[i,j+1].set_ylim(-0.1,1.1)
+	#axs[i,j+2].set_ylim(-0.1,1.1)
+
+	return axs
+
 def bifu_2Dplot_IPTG(A0,par,axs,i,j,IPTG,p,meq,modeltype,l=2):
 	mono_matrix=np.zeros((len(A0),len(IPTG)))
 	mono_green=np.zeros((len(A0),len(IPTG)))
 	mono_red=np.zeros((len(A0),len(IPTG)))
 	oscil_matrix=np.zeros((len(A0),len(IPTG)))
 
-	maxvalues=1#par['beta_green']
+	maxvalues=1000#par['beta_green']
 	minvalues=0.001#par['alpha_green']
 
 	ss=meq.findss(A0,IPTG,par,modeltype)
@@ -786,8 +919,8 @@ def bifu_2Dplot_IPTG(A0,par,axs,i,j,IPTG,p,meq,modeltype,l=2):
 	oscil_matrix[oscil_matrix==0]=oscil_matrix[oscil_matrix==0]*np.nan
 
 	
-	axs[i,j].imshow(mono_red.T,aspect="auto", cmap="Reds")#vmin=minvalues,vmax=maxvalues, alpha=1)
-	axs[i,j].imshow(mono_green.T,aspect="auto", cmap="Greens", alpha=1)#,vmin=minvalues,vmax=maxvalues, alpha=0.7)
+	axs[i,j].imshow(mono_red.T,aspect="auto", cmap="Reds", vmin=minvalues,vmax=maxvalues)
+	axs[i,j].imshow(mono_green.T,aspect="auto", cmap="Greens", alpha=1,vmin=minvalues,vmax=maxvalues)
 	axs[i,j].imshow(mono_matrix.T,aspect="auto", cmap="Blues", vmin=2,vmax=3)# vmin=1,vmax=5)
 	#axs[i,j].imshow(oscil_matrix.T,aspect="auto", cmap="Greys", vmin=0,vmax=1)# vmin=1,vmax=5)
 	a=np.argwhere(oscil_matrix.T==1)

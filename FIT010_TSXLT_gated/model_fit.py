@@ -96,10 +96,11 @@ def model_TSXLT(GREENi,REDi,REDfi,AHLi,A0,IPTG,par):
 def solvedfunction(Gi,A,I,par,model):
     #rewrite the system equation to have only one unknow and to be call with scipy.optimze.brentq
     #the output give a function where when the line reach 0 are a steady states
+    
     par['delta_green']=1
     par['delta_red']=1 #1.2
     par['delta_ahl']=1 #1.2
-
+    
 
     if model == 'TSLT':
 

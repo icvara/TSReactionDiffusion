@@ -452,79 +452,8 @@ stop
 '''
 
 
-######### TEST GROWTH, diffusion +  TSRD ... ####################
-
-'''
-dt=0.005
-time=20
-
-#dt=0.05
-
-par=par0
-par['beta_red']=1
-par['alpha_red']=0.1
-par['K_ahl_green']=1
-par['K_ahl_green']=1.5
-par['K_ahl_red']=1
-par['beta_green']=1
-par['alpha_green']=0.1
-par['beta_ahl']=1
-par['K_ahl']=0
-
-#par=par_TSLT_mushroom
-
-par['D_ahl']=0.1 #cm/h
-par['K_GREEN']=0.9
-par['K_RED']=1.2
-
-#par['D_ahl']=size/10/time #mm/h
 
 
-Tmatrx=[1,1,0]
-Vmatrx=[1,0.,1,1]
-Nmatrx=[0.,0.,0.,0.]
-
-
-#G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
-G,R,A,C,D = init_colony(Vmatrx,width)
-
-A0= np.zeros(1)
-A0_bifu=np.logspace(-5,1,100)
-
-name='TSXLT_TEST2'
-
-fig, axs = plt.subplots(2,3,constrained_layout=True)
-
-bifu_plot_tgh(par,A0_bifu,axs,0,0)
-
-av = simulation(G,R,A,C,D,A0,0,par,width,dx,time,dt,"TSXLT",time,False)
-
-plot2D_simple_tgh(av,-1,axs,0,2)
-plot2D_kymograph_tgh(av,int(width/2), axs, 0,1)
-axs[1,1].plot(av[:,0,int(width/2),int(width/2)],'g')
-axs[1,1].plot(av[:,3,int(width/2),int(width/2)],'b')
-axs[1,1].plot(av[:,1,int(width/2),int(width/2)],'r')
-axs[1,2].plot(av[-1,0,:,int(width/2)],'g')
-axs[1,2].plot(av[-1,3,:,int(width/2)],'b')
-axs[1,2].plot(av[-1,1,:,int(width/2)],'r')
-
-ttype, e2=getTuringinstability(par,200)
-axs[1,0].axhline(y=0., xmin=0, xmax=200, c="k")
-axs[1,0].plot(e2[0,:,:])
-axs[1,0].set_yscale('symlog')
-
-
-axs[1,2].plot(av[-1,1,:,int(width/2)],'r')
-
-plt.savefig("Figures/"+name+".pdf",dpi=300)
-
-
-
-plt.show()
-
-
-stop
-'''
 
 ###################
 
@@ -793,7 +722,7 @@ sys.path.insert(0, 'C:/Users/Administrator/Desktop/Modeling/TSReactionDiffusion/
 import model_fit as meq
 parlist=meq.parlist
 
-#n=['26']
+n=['26']
 n=['48']
 
 
@@ -801,22 +730,27 @@ gg,gr,rr,rg=meq.Get_data(datafile)
 AHL=gg.index.values
 IPTG=gg.columns.values
 p, df= load(n[0],filename,meq.parlist)
+pMAP=pars_to_dict(getMAP(df.to_numpy().T),parlist)
 p0=p[0]
-print(p0)
 pmedian=pars_to_dict(np.array(df.median().tolist()[:-1]),parlist)
 
+print(pMAP)
+print(p[239])
+
+
+stop
 
 #p0['delta_red']=1
 #p0['delta_green']=1
 
 
-
-p0['D_ahl']=1#0.010
-p0['beta_ahl']=-100.5#-1.5
-p0['delta_ahl']=1
-p0['K_ahl']=0
-p0['n_ahl']=1.00
-
+'''
+pMAP['D_ahl']=1#0.010
+pMAP['beta_ahl']=-100.5#-1.5
+pMAP['delta_ahl']=1
+pMAP['K_ahl']=0
+pMAP['n_ahl']=1.00
+'''
 
 
 ###########
@@ -836,8 +770,8 @@ plt.show()
 compare_plot([p[0]],filename,meq,datafile,modeltype,lw=1.5)
 plt.savefig(filename+"/plot/"+str(n[0])+'p0_plot.pdf', bbox_inches='tight',dpi=300)
 plt.show()
-compare_plot([pmedian],filename,meq,datafile,modeltype,lw=1.5)
-plt.savefig(filename+"/plot/"+str(n[0])+'pmedian_plot.pdf', bbox_inches='tight',dpi=300)
+compare_plot([pMAP],filename,meq,datafile,modeltype,lw=1.5)
+plt.savefig(filename+"/plot/"+str(n[0])+'pMAP_plot.pdf', bbox_inches='tight',dpi=300)
 plt.show()
 
 compare_plot(p,filename,meq,datafile,modeltype,lw=.5)
@@ -852,12 +786,11 @@ plt.show()
 #doesnt' work yet
 #modeltype="TSXLT"
 #datafile = 'data/'+modeltype + '/' +data
-p0['K_RED']=-0.5
-compare_plot([p0],filename,meq,datafile,modeltype,lw=1.5)
-plt.savefig(filename+"/plot/"+str(n[0])+'_TESTplot.pdf', bbox_inches='tight',dpi=300)
-plt.show()
-stop
 
+#p0['K_RED']=-0.5sss
+#compare_plot([pMAP],filename,meq,datafile,modeltype,lw=1.5)
+#plt.savefig(filename+"/plot/"+str(n[0])+'_pTEST_plot.pdf', bbox_inches='tight',dpi=300)
+#plt.show()
 ###########
 #BIFUPLOT 2D
 ###########
@@ -867,7 +800,7 @@ gg,gr,rr,rg=meq.Get_data(datafile)
 AHL=gg.index.values
 IPTG=gg.columns.values
 fig, axs = plt.subplots(2,2,constrained_layout=True)
-bifu_2Dplot_IPTG(AHL,p0,axs,0,0,IPTG,p,meq,"TSXLT",1)
+bifu_2Dplot_IPTG(AHL,pMAP,axs,0,0,IPTG,p,meq,"TSXLT",1)
 size=200
 AHL=np.logspace(-6,0,size)
 AHL=np.logspace(-4,0,size)
@@ -876,21 +809,23 @@ AHL=np.logspace(-4,0,size)
 IPTG=np.logspace(-2.5,1,size)
 IPTG=np.logspace(-5,1,size)
 
-bifu_2Dplot_IPTG(AHL,p0,axs,1,0,IPTG,p,meq,"TSXLT",1)
+bifu_2Dplot_IPTG(AHL,pMAP,axs,1,0,IPTG,p,meq,"TSXLT",1)
 
 AHL=np.logspace(-6,0,size)
 AHL=np.logspace(-4,0,size)
 
 IPTG=np.logspace(-5,0,size)
-bifu_2Dplot_IPTG(AHL,p0,axs,1,1,IPTG,p,meq,"TSXLT",1)
+bifu_2Dplot_IPTG(AHL,pMAP,axs,1,1,IPTG,p,meq,"TSXLT",1)
 
-plt.savefig(filename+"/plot/"+str(n[0])+'_bifuDiag.pdf', bbox_inches='tight',dpi=300)
+plt.savefig(filename+"/plot/"+'pMAP_bifuDiag.pdf', bbox_inches='tight',dpi=300)
 plt.show()
-'''
 
+stop
+'''
 ###########
 #BIFUPLOT 1D
 ###########
+
 '''
 gg,gr,rr,rg=meq.Get_data(datafile)
 AHL=gg.index.values
@@ -901,24 +836,24 @@ AHL=np.logspace(-6,0,200)
 #IPTG=np.logspace(-2.5,0,size)
 #size=20
 #IPTG=np.logspace(-0.2,0.2,size)
-bifu_plot_fit(p0,AHL,IPTG,axs,0,0,meq,"TSXLT")
-plt.savefig(filename+"/plot/"+str(n[0])+'_bifucurve1.pdf', bbox_inches='tight',dpi=300)
+bifu_plot_fit(pMAP,AHL,IPTG,axs,0,0,meq,"TSXLT")
+plt.savefig(filename+"/plot/"+str(n[0])+'_bifucurve2.pdf', bbox_inches='tight',dpi=300)
 plt.show()
 '''
-
-
 
 ###########
 #TURING Instability
 ###########
 
+'''
 gg,gr,rr,rg=meq.Get_data(datafile)
 AHL=gg.index.values
 IPTG=gg.columns.values
-TI_plot_fit(AHL,IPTG,p0,meq)
-plt.savefig(filename+"/plot/"+str(n[0])+'_p0TI.pdf', bbox_inches='tight',dpi=300)
+TI_plot_fit(AHL,IPTG,pMAP,meq)
+plt.savefig(filename+"/plot/"+str(n[0])+'_pMAPTI.pdf', bbox_inches='tight',dpi=300)
 plt.show()
-stop
+'''
+
 
 
 '''
@@ -946,13 +881,188 @@ plt.show()
 ########################################
 
 
+n=['26']
+#n=['48']
+p, df= load(n[0],filename,meq.parlist)
+pMAP=pars_to_dict(getMAP(df.to_numpy().T),parlist)
+pp=p[239]
+#pp=pMAP
+
+
+#pMAP['D_ahl']=1#0.010
+'''
+pMAP['beta_ahl']=-100.5#-1.5
+pMAP['delta_ahl']=1
+pMAP['K_ahl']=0
+pMAP['n_ahl']=1.00
+'''
+
+
+
+#dt=0.005
+dt=0.005
+size=4
+dx=0.05
+width=int(size/dx)
+pos=int(width/2)
+unitX= np.arange(0,width)*dx
+time=20#20#20
+par_growth['H_growth'] = 0.05 #0.05# #  cm/h ?
+par_growth['D_growth'] =  0.5 #  cm/h ?
+par_growth['D_growth'] =  1 #  cm/h ?
+
+
+
+#dt=0.05
+'''
+par=pMAP.copy()
+par['delta_green']=1
+par['delta_red']=1
+par['delta_ahl']=1
+
+par['beta_red']=1
+par['alpha_red']=3
+par['K_ahl_green']=1
+par['K_ahl_red']=1
+par['beta_green']=1
+par['alpha_green']=3
+
+par['basal_green']=0.
+par['basal_red']=0.
+
+
+#par=par_TSLT_mushroom
+par['K_GREEN']=2 # here == IPTG
+par['K_RED']=1
+
+par['n_GREEN']=2
+par['n_RED']=2
+'''
+
+#par['D_ahl']=size/10/time #mm/h
+IPTG=np.logspace(-2.5,1,6) #6
+
+
+gg,gr,rr,rg=meq.Get_data(datafile)
+AHL=gg.index.values
+IPTG=gg.columns.values
+A0= np.ones(1)*.0
+A0_bifu=np.logspace(-5,1,100)
+
+AHL=np.logspace(-6,0,6)
+#AHL[0]=0
+IPTG=np.logspace(-2.5,1,6)
+I0=np.ones(1)*0.5
+ss=meq.findss(AHL,IPTG,pp,modeltype)
+print(ss)
+
+Tmatrx=[1,1,0]
+state=0
+#Vmatrx=[ss[-1,0,state,0]-10**pp['basal_green'],ss[-1,0,state,2],0,1]
+
+Vmatrx=[ss[0,0,state,0]-10**pp['basal_green'],ss[0,0,state,2],ss[0,0,state,3],1]
+
+Vmatrx2=[ss[-1,-1,state,0]-10**pp['basal_green'],ss[-1,-1,state,2],ss[0,0,state,3],1]
+
+#Vmatrx=[ss[0,0,state,0]-10**pp['basal_green'],ss[0,0,state,2],ss[0,0,state,3],1]
+
+print(Vmatrx)
+print(Vmatrx2)
+
+Vmatrx=[ss[0,0,state,0]-10**pp['basal_green'],ss[0,0,state,2],ss[0,0,state,3],1]
+
+
+
+Nmatrx=[0,0,0,0]
+
+G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
+
+G[40,40]=Vmatrx2[0]
+R[40,40]=Vmatrx2[1]
+A[40,40]=Vmatrx2[2]
+#G,R,A,C,D = init_colony(Vmatrx,width)
+
+
+
+
+
+name='lawn_TSXLT_dif'
+pp['D_ahl']=0.#0.1 #cm/h 2.5 10**-3 cm2/h (Basu et al, 2005; Miyamoto et al,2018). 
+
+
+
+fig, axs = plt.subplots(6,6,constrained_layout=True)
+
+print(pp)
+#pp['beta_ahl']=0
+
+#bifu_2Dplot_IPTG(AHL,pp,axs,0,0,IPTG,p,meq,"TSXLT",1)
+IPTG_bifu=np.logspace(-2.5,1,100)
+
+IPTG=np.logspace(-2.5,1,6) #6
+#IPTG= 
+#IPTG=gg.columns.values
+#IPTG[0]=10**-2.5
+#IPTG=IPTG[-2]
+#for i,I in enumerate([IPTG[0]]):
+
+for i,I in enumerate(IPTG):
+	bifu_plot_fit_tgh2(pp,A0,IPTG_bifu,axs,i,0,meq,"TSXLT")
+
+
+
+
+
+#bifu_plot_fit_tgh(pp,A0_bifu,I0,axs,1,0,meq,"TSXLT")
+
+	axs[i,0].axvline(x=np.log10(I))
+
+#col sim
+	for j,n in enumerate([0]):#[0,0.5,1,2,4]):
+
+		av = simulation(G,R,A,C,D,A0,I,pp,width,dx,time,dt,"TSXLT_fit",time,n,False,True,meq=meq)
+		#av2 = simulation(G,R,A,C,D,A0,I,pp,width,dx,time,dt,"TSXLT_fit",time,n,True,meq=meq)
+		ngraph=1
+		plot2D_simple_tgh(av,-1,axs,i,(j*ngraph+1))
+		plot2D_kymograph_tgh(av,int(width/2),axs,i,(j*ngraph+2))
+
+		axs[i,(j*ngraph+3)].plot(av[-1,0,int(width/2),:],'g')
+		axs[i,(j*ngraph+3)].plot(av[-1,3,int(width/2),:],'b')
+		axs[i,(j*ngraph+3)].plot(av[-1,1,int(width/2),:],'r')
+
+		'''
+		plot2D_simple_tgh(av2,-1,axs,i,(j+j*ngraph+3))
+		axs[i,(j+j*ngraph+4)].plot(av2[-1,0,int(width/2),:],'g')
+		axs[i,(j+j*ngraph+4)].plot(av2[-1,3,int(width/2),:],'b')
+		axs[i,(j+j*ngraph+4)].plot(av2[-1,1,int(width/2),:],'r')
+		'''
+
+
+
+plt.savefig("Figures/"+name+".pdf",dpi=300)
+
+
+
+plt.show()
+
+
+stop
+
+
+#############################33
+
+
+
+
+
+
 
 A0=np.logspace(-6,0,100)
 I=np.ones(1)*0.25
 
-ss=meq.findss(A0,I,p0,"TSXLT")
+ss=meq.findss(A0,I,pMAP,"TSXLT")
 gstate=np.copy(ss[0,0,1])
-gstate[0]=gstate[0]-10**p0['basal_green']
+gstate[0]=gstate[0]-10**pMAP['basal_green']
 #gstate[2]=gstate[2]-10**p0['basal_red']
 
 #rstate=np.copy(ss[-1,-1,0])
@@ -963,7 +1073,7 @@ gstate[0]=gstate[0]-10**p0['basal_green']
 fig, axs = plt.subplots(2,3)#constrained_layout=True)
 
 
-bifu_plot_fit(p0,A0,I,axs,0,0,meq,"TSXLT")
+bifu_plot_fit(pMAP,A0,I,axs,0,0,meq,"TSXLT")
 plt.show()
 A0=np.zeros(1)
 
@@ -973,13 +1083,13 @@ Nmatrx=[0.,0.,0.,0.] #noise
 Vmatrx=[800,0,0,1] #initial values
 size= 16
 dx=0.05
-time=4
+time=1
 dt=0.001
 width=int(size/dx)
 
 fig, axs = plt.subplots(2,2)#constrained_layout=True)
 G,R,A,C,D = init_colony(Vmatrx,width)
-av = simulation(G,R,A,C,D,A0,I,p0,width,dx,time,dt,"TSXLT_fit",time,True)
+av = simulation(G,R,A,C,D,A0,I,pMAP,width,dx,time,dt,"TSXLT_fit",time,True,meq=meq)
 plot2D_simple_tgh(av,-1,axs,0,0)
 plot2D_kymograph_tgh(av,int(width/2), axs, 0, 1)
 #plot_crossection(av,-1,int(width/2), axs, 0, 1)
@@ -990,7 +1100,6 @@ plot_crosstime(av,int(width/2), axs, 1, 0)
 plt.show()
 
 
-stop
 
 #2D simulation
 Tmatrx=[1,1,0]
@@ -1005,675 +1114,27 @@ A0=AHL
 I=IPTG[:,np.newaxis]
 
 gstate=np.copy(ss[0,0,0])
-gstate[0]=gstate[0]-10**p0['basal_green']
-gstate[1]=gstate[1]-10**p0['basal_red']
+gstate[0]=gstate[0]-10**pMAP['basal_green']
+gstate[1]=gstate[1]-10**pMAP['basal_red']
 
 rstate=np.copy(ss[-1,-1,0])
-rstate[0]=rstate[0]-10**p0['basal_green']
-rstate[1]=rstate[1]-10**p0['basal_red']
+rstate[0]=rstate[0]-10**pMAP['basal_green']
+rstate[1]=rstate[1]-10**pMAP['basal_red']
 
 fig, axs = plt.subplots(2,2,constrained_layout=True)
 
 Vmatrx=[gstate[0],gstate[1],0,1]
 G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
-av = simulation(G,R,A,C,D,A0,I,p0,width,dx,time,dt,"TSXLT_fit",time,False)
+av = simulation(G,R,A,C,D,A0,I,pMAP,width,dx,time,dt,"TSXLT_fit",time,False)
 plot2D_simple_tgh(av,-1,axs,0,0)
 
 Vmatrx=[rstate[0],rstate[1],0,1]
 G,R,A,C,D = init_grid(Vmatrx,Nmatrx,width,Tmatrx)
-av = simulation(G,R,A,C,D,A0,I,p0,width,dx,time,dt,"TSXLT_fit",time,False)
+av = simulation(G,R,A,C,D,A0,I,pMAP,width,dx,time,dt,"TSXLT_fit",time,False)
 plot2D_simple_tgh(av,-1,axs,1,0)
 plt.show()
 
 stop
-
-
-
-
-
-
-
-#===============================================================================================================================================================
-
-
-#delete?
-
-#======================================================================================================================================================================
-
-
-##################################################################333
-
-'''
-def bifu_plot2(par):
-	A0=np.logspace(-3,0,width)
-	A0[0]=0
-
-
-	ss=findss(A0,[0],par)
-
-
-	#ss=np.sort(ss,axis=2)
-	fig, axs = plt.subplots(3)
-	for mi,m in enumerate(['-','--','-','o','o']):
-                    axs[0].plot(ss[:,0,mi,0],m+'g',markersize=1.)
-                    axs[1].plot(ss[:,0,mi,1],m+'r',markersize=1.)
-                    axs[2].plot(ss[:,0,mi,2],m+'b',markersize=1.)
-
-	plt.show()
-
-def bifu_plot(A0,par):
-	A0=np.logspace(-3,0,width)
-	#A0[0]=0
-	ss=findss(A0,[0],par)
-	sse=getEigen(ss,A0,par)
-	I=0
-
-	fig, axs = plt.subplots(3)
-
-	for ai,a in enumerate(A0):
-		for si in np.arange(0,ss.shape[2]):
-			e=sse[ai,I,si,:]
-			er=e.real
-			ei=e.imag
-			
-
-			sss=ss[ai,I,si,:]
-			if np.all(er!=0): 
-				#print(sse)
-				if np.all(er<0): #stable
-					#if np.all(ei==0):
-					#node
-						m='o'
-						axs[0].plot(np.log10(a),sss[0],m+'g',markersize=1)
-						axs[1].plot(np.log10(a),sss[1],m+'r',markersize=1.)
-						axs[2].plot(np.log10(a),sss[2],m+'b',markersize=1.)
-
-
-				elif np.any(er>0): #unstable
-					#check complex conjugate
-					if len(er) != len(set(er)):
-						if np.any(ei==0) and len(ei) != len(set(np.abs(ei))):
-							#oscilation
-							m='o'
-							axs[0].plot(np.log10(a),sss[0],m+'m',markersize=1.)
-							axs[1].plot(np.log10(a),sss[1],m+'m',markersize=1.)
-							axs[2].plot(np.log10(a),sss[2],m+'m',markersize=1.)
-						else:
-							m='x'
-							axs[0].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-							axs[1].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-							axs[2].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-					else:
-							m='x'
-							axs[0].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-							axs[1].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-							axs[2].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-
-
-	plt.show()
-
-
-def plot1D(par,model = "TSXLT", endpoint=False):
-
-
-	n=np.arange(0,10)
-	tt=int(time/dt/4)
-
-	if endpoint==True:
-		n=[1]
-	fig, axs = plt.subplots(len(n),6,sharey=False)
-
-
-	for v in np.arange(0,6):
-		A0=np.logspace(-3,0,width)*0
-		#A0=np.ones(width)*0.7
-
-
-		if v==0:
-			G=np.random.normal(loc=0.8, scale=0.2, size=(width))
-			R=np.random.normal(loc=0.8, scale=0.2, size=(width))*0
-			A=np.random.normal(loc=0.8, scale=0.2, size=(width))
-
-		elif v==1:
-			G=np.random.normal(loc=0.8, scale=0.2, size=(width))*0
-			R=np.random.normal(loc=0.8, scale=0.2, size=(width))
-			A=np.random.normal(loc=0.8, scale=0.2, size=(width))
-		elif v==2:
-			G=np.random.normal(loc=0.8, scale=0.2, size=(width))
-			R=np.random.normal(loc=0.8, scale=0.2, size=(width))
-			A=np.random.normal(loc=0.8, scale=0.2, size=(width))
-		elif v==3:
-			G=np.random.normal(loc=0.1, scale=0.1, size=(width))
-			R=np.random.normal(loc=0.1, scale=0.1, size=(width))*0
-			A=np.random.normal(loc=0.1, scale=0.1
-				, size=(width))
-		elif v==4:
-			G=np.random.normal(loc=0.1, scale=0.1, size=(width))*0
-			R=np.random.normal(loc=0.1, scale=0.1, size=(width))
-			A=np.random.normal(loc=0.1, scale=0.1, size=(width))
-		elif v==5:
-			G=np.random.normal(loc=0.1, scale=0.1, size=(width))
-			R=np.random.normal(loc=0.1, scale=0.1, size=(width))
-			A=np.random.normal(loc=0.1, scale=0.1, size=(width))
-
-		av=simulation(G,R,A,A0,0,par,dt,model,tt=time)
-		if endpoint==False:
-			for i in n:
-				tt=int(time/dt/len(n))*i
-				index=v
-				axs[i,index].plot(av[tt,0],'g')
-				axs[i,index].plot(av[tt,1],'r')
-				#axs[i,index+2].plot(av[tt,2],'b')
-
-				#axs[i,v].set_ylim(0,0.02)
-		else:
-				axs[v].imshow(av[-1,0])
-				#axs[v].imshow(av[-1,1],'--r')
-
-
-	#plt.plot(at[round(tt/2)])
-	#plt.plot(at[-1])
-	plt.show()
-
-
-
-def plot2D(par,model = "TSXLT", endpoint=False):
-
-
-	n=np.arange(0,10)
-	tt=int(time/dt/4)
-
-	if endpoint==True:
-		n=[1]
-	fig, axs = plt.subplots(len(n),6*3,sharey=False)
-
-
-	for v in np.arange(0,6):
-		A0=np.logspace(-3,0,width,width)*0
-		#A0=np.ones(width)*0.7
-
-
-		if v==0:
-			G=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-			R=np.random.normal(loc=0.8, scale=0.2, size=(width,width))*0
-			A=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-
-		elif v==1:
-			G=np.random.normal(loc=0.8, scale=0.2, size=(width,width))*0
-			R=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-			A=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-		elif v==2:
-			G=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-			R=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-			A=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-		elif v==3:
-			G=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-			R=np.random.normal(loc=0.1, scale=0.1, size=(width,width))*0
-			A=np.random.normal(loc=0.1, scale=0.1
-				, size=(width,width))
-		elif v==4:
-			G=np.random.normal(loc=0.1, scale=0.1, size=(width,width))*0
-			R=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-			A=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-		elif v==5:
-			G=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-			R=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-			A=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-
-		av=simulation(G,R,A,A0,0,par,dt,model,tt=time)
-		if endpoint==False:
-			for i in n:
-				tt=int(time/dt/len(n))*i
-				index=3*v
-				axs[i,index].imshow(av[tt,0],'Greens')
-				axs[i,index+1].imshow(av[tt,1],'Reds')
-				axs[i,index+2].imshow(av[tt,2],'Blues')
-
-				#axs[i,v].set_ylim(0,0.02)
-		else:
-				axs[v].imshow(av[-1,0])
-				#axs[v].imshow(av[-1,1],'--r')
-
-
-	#plt.plot(at[round(tt/2)])
-	#plt.plot(at[-1])
-	plt.show()
-
-def plot_eigen(par):
-	A=np.zeros(1)
-	e=get_turingInstability(A,par,model="TSXLT")
-	er=e.real
-	ei=e.imag
-	plt.plot(er[0,0,0,:,:],'g')
-	plt.plot(er[0,0,1,:,:],'r')
-	plt.plot(er[0,0,2,:,:],'b')
-	plt.plot(er[0,0,3,:,:],'y')
-	plt.plot(er[0,0,4,:,:],'c')
-	plt.yscale('symlog')
-	plt.ylim(-100,1)
-	plt.axhline(y = 0, linestyle='-',c='black')
-	plt.show()
-
-def plot_all(par,model,k=[0],parm="null",i=""):
-	if len(k)==1:
-		fig, axs = plt.subplots(1,10,sharey=False,figsize=(40,1))
-		A0=np.logspace(-3,0,width)
-		I=0
-
-		axs[0].axis([0, 10, 0, 10])
-		axs[0].text(1, 5, k, fontsize=5)
-
-		#bifu plot
-
-		ss=findss(A0,[0],par)
-		sse=getEigen(ss,A0,par)
-
-		for ai,a in enumerate(A0):
-			for si in np.arange(0,ss.shape[2]):
-				e=sse[ai,I,si,:]
-				er=e.real
-				ei=e.imag
-				
-
-				sss=ss[ai,I,si,:]
-				if np.all(er!=0): 
-					#print(sse)
-					if np.all(er<0): #stable
-						#if np.all(ei==0):
-						#node
-							m='o'
-							axs[1].plot(np.log10(a),sss[0],m+'g',markersize=1)
-							axs[2].plot(np.log10(a),sss[1],m+'r',markersize=1.)
-							#axs[0].plot(np.log10(a),sss[2],m+'b',markersize=1.)
-
-
-					elif np.any(er>0): #unstable
-						#check complex conjugate
-						if len(er) != len(set(er)):
-							if np.any(ei==0) and len(ei) != len(set(np.abs(ei))):
-								#oscilation
-								m='o'
-								axs[1].plot(np.log10(a),sss[0],m+'m',markersize=1.)
-								axs[2].plot(np.log10(a),sss[1],m+'m',markersize=1.)
-								#axs[0].plot(np.log10(a),sss[2],m+'m',markersize=1.)
-							else:
-								m='x'
-								axs[1].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-								axs[2].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-								#axs[0].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-						else:
-								m='x'
-								axs[1].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-								axs[2].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-								#axs[0].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-		#1D plot
-
-
-		for v in np.arange(0,6):
-			A0=np.logspace(-3,0,width,width)*0
-
-			if v==0:
-				G=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-				R=np.random.normal(loc=0.8, scale=0.2, size=(width,width))*0
-				A=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-				C=np.ones((width,width))
-				D=np.ones((width,width))
-
-			elif v==1:
-				G=np.random.normal(loc=0.8, scale=0.2, size=(width,width))*0
-				R=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-				A=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-				C=np.ones((width,width))
-				D=np.ones((width,width))
-			elif v==2:
-				G=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-				R=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-				A=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-				C=np.ones((width,width))
-				D=np.ones((width,width))
-			elif v==3:
-				G=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-				R=np.random.normal(loc=0.1, scale=0.1, size=(width,width))*0
-				A=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-			elif v==4:
-				G=np.random.normal(loc=0.1, scale=0.1, size=(width,width))*0
-				R=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-				A=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-				C=np.ones((width,width))
-				D=np.ones((width,width))
-			elif v==5:
-				G=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-				R=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-				A=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-				C=np.ones((width,width))
-				D=np.ones((width,width))
-
-			av=simulation(G,R,A,C,D,A0,0,par,width,dx,time,dt,model,tt=time)
-
-			axs[v+3].imshow(av[-1,0],cmap='Greens')
-			#axs[v+3].imshow(av[-1,1],cmap='Reds')
-
-		#eigen
-		A=np.zeros(1)
-		e=get_turingInstability(A,par)
-		er=e.real
-		ei=e.imag
-		npl = 9
-		axs[npl].plot(er[0,0,0,:,:],'g')
-		axs[npl].plot(er[0,0,1,:,:],'r')
-		axs[npl].plot(er[0,0,2,:,:],'b')
-		axs[npl].plot(er[0,0,3,:,:],'y')
-		axs[npl].plot(er[0,0,4,:,:],'c')
-		axs[npl].set_yscale('symlog')
-		axs[npl].set_ylim(-100,1)
-		axs[npl].axhline(y = 0, linestyle='-',c='black')
-
-	else:
-		fig, axs = plt.subplots(len(k),10,sharey=False,figsize=(10,len(k)))
-		I=0
-
-		#partxt = json.dumps(par)
-		#partxt=str(par)
-		#partxt=partxt.replace(",", "\n")
-		#print(partxt)
-
-		for ki,kii in enumerate(k):
-			A0=np.logspace(-3,0,width)
-
-			par[parm]=kii
-			txt=parm + "\n" + str(kii)
-			axs[ki,0].axis([0, 10, 0, 10])
-			axs[ki,0].text(0.1, 5, txt, fontsize=8)
-			#bifu plot
-			ss=findss(A0,[0],par,model)
-			sse=getEigen(ss,A0,par,model)
-
-			for ai,a in enumerate(A0):
-				for si in np.arange(0,ss.shape[2]):
-					e=sse[ai,I,si,:]
-					er=e.real
-					ei=e.imag
-
-					sss=ss[ai,I,si,:]
-					if np.all(er!=0): 
-						#print(sse)
-						if np.all(er<0): #stable
-							#if np.all(ei==0):
-							#node
-								m='o'
-								axs[ki,1].plot(np.log10(a),sss[0],m+'g',markersize=1)
-								axs[ki,2].plot(np.log10(a),sss[1],m+'r',markersize=1.)
-								#axs[0].plot(np.log10(a),sss[2],m+'b',markersize=1.)
-
-
-						elif np.any(er>0): #unstable
-							#check complex conjugate
-							if len(er) != len(set(er)):
-								if np.any(ei==0) and len(ei) != len(set(np.abs(ei))):
-									#oscilation
-									m='o'
-									axs[ki,1].plot(np.log10(a),sss[0],m+'m',markersize=1.)
-									axs[ki,2].plot(np.log10(a),sss[1],m+'m',markersize=1.)
-									#axs[0].plot(np.log10(a),sss[2],m+'m',markersize=1.)
-								else:
-									m='x'
-									axs[ki,1].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-									axs[ki,2].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-									#axs[0].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-							else:
-									m='x'
-									axs[ki,1].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-									axs[ki,2].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-									#axs[0].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-			
-			axs[ki,1].set_ylim(-0.1,1.1)
-			axs[ki,2].set_ylim(-0.1,1.1)
-
-
-
-			#1D plot
-
-
-			for v in np.arange(0,6):
-				A0=np.logspace(-3,0,width,width)*0
-
-				if v==0:
-					G=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-					R=np.random.normal(loc=0.8, scale=0.2, size=(width,width))*0
-					A=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-					C=np.ones((width,width))
-					D=np.ones((width,width))					
-
-				elif v==1:
-					G=np.random.normal(loc=0.8, scale=0.2, size=(width,width))*0
-					R=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-					A=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-					C=np.ones((width,width))
-					D=np.ones((width,width))
-				elif v==2:
-					G=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-					R=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-					A=np.random.normal(loc=0.8, scale=0.2, size=(width,width))
-					C=np.ones((width,width))
-					D=np.ones((width,width))
-				elif v==3:
-					G=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-					R=np.random.normal(loc=0.1, scale=0.1, size=(width,width))*0
-					A=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-					C=np.ones((width,width))
-					D=np.ones((width,width))
-				elif v==4:
-					G=np.random.normal(loc=0.1, scale=0.1, size=(width,width))*0
-					R=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-					A=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-					C=np.ones((width,width))
-					D=np.ones((width,width))
-				elif v==5:
-					G=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-					R=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-					A=np.random.normal(loc=0.1, scale=0.1, size=(width,width))
-					C=np.ones((width,width))
-					D=np.ones((width,width))
-
-				av=simulation(G,R,A,C,D,A0,0,par,width,dx,time,dt,model,tt=time)
-
-				axs[ki,v+3].imshow(av[-1,0])
-				#axs[ki,v+3].plot(av[-1,1],'--r')
-				#axs[ki,v+3].set_ylim(-0.1,1.1)
-
-
-			#eigen
-			A=np.zeros(1)
-			e=get_turingInstability(A,par)
-			er=e.real
-			ei=e.imag
-			npl = 9
-			axs[ki,npl].plot(er[0,0,0,:,:],'g')
-			axs[ki,npl].plot(er[0,0,1,:,:],'r')
-			axs[ki,npl].plot(er[0,0,2,:,:],'b')
-			axs[ki,npl].plot(er[0,0,3,:,:],'y')
-			axs[ki,npl].plot(er[0,0,4,:,:],'c')
-			#axs[ki,npl].set_yscale('symlog')
-			axs[ki,npl].set_ylim(-0.5,0.5)
-			axs[ki,npl].axhline(y = 0, linestyle='-',c='black')
-	plt.savefig(parm+'_'+i+'.png')
-	plt.show()
-
-
-
-def screen_2par(par,par1,par2,k1,k2):
-	size=len(k1)
-
-	I=0
-	A0=np.logspace(-2,0,20)
-
-
-
-	fig, axs = plt.subplots(size,size,sharey='none') #figsize=(12,8)
-	for i,ii in enumerate(k1):
-		for j,jj in enumerate(k2):
-			par[par1]=ii#ii
-			par[par2]= jj#ii#ii
-
-			ss=findss(A0,[0],par)
-			sse=getEigen(ss,A0,par)
-
-			for ai,a in enumerate(A0):
-					for si in np.arange(0,ss.shape[2]):
-						sss=ss[ai,I,si,:]
-						e=sse[ai,I,si,:]
-
-						if np.all(e!=0): 
-							#print(sse)
-							if np.all(e<0):
-								m='o'
-								axs[i,j].plot(np.log10(a),sss[0],m+'g',markersize=1)
-								#axs[i,j].plot(np.log10(a),sss[1],m+'r',markersize=1.)
-								#axs[2].plot(np.log10(a),sss[2],m+'b',markersize=1.)
-
-							elif np.any(e>0):
-									if len(e) != len(set(e)):
-										m='o'
-										axs[i,j].plot(np.log10(a),sss[0],m+'m',markersize=1.)
-										#axs[i,j].plot(np.log10(a),sss[1],m+'m',markersize=1.)
-										#axs[2].plot(np.log10(a),sss[2],m+'m',markersize=1.)
-									else:
-										m='x'
-										axs[i,j].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-										#axs[i,j].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-										#axs[2].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-								
-							else:
-									m='x'
-									axs[i,j].plot(np.log10(a),sss[0],m+'k',markersize=1.)
-									#axs[i,j].plot(np.log10(a),sss[1],m+'k',markersize=1.)
-									#axs[2].plot(np.log10(a),sss[2],m+'k',markersize=1.)
-
-			axs[i,j].axes.xaxis.set_ticks([])
-			axs[i,j].axes.yaxis.set_ticks([])
-			axs[i,j].set_ylim(-0.1,1.1)
-	plt.show()
-
-
-
-
-
-
-par['K_ahl_green']=0.#k2[15]#[5]
-par['K_ahl_red']= 0.
-
-par['K_GREEN']=1#k[8]#[3]
-par['K_RED']= 1 #ii
-
-par['delta_red']=1.
-par['delta_green']=1
-par['D_ahl']=0.1
-'''
-
-'''
-A0=np.logspace(-3,0,width)
-bifu_plot(A0,par)
-plot2D(par)
-'''
-#plot2D(par)
-
-
-#A0=np.logspace(-2,0,10)
-#k = np.linspace(0.,2,size) #for K_RED/GREEN
-#screen_2par(par,'K_GREEN','K_RED',k,k)
-k = np.linspace(-1,1,nPar) #for K_RED/GREEN
-
-
-
-plot_all(par,model="TSXLT",k=k,parm="K_ahl_green", i='w')
-
-par=par_turing
-#plot1D(par,model="Turing")
-
-plot2D(par,model="Turing")
-
-
-'''
-I=0
-A0=np.logspace(-3,0,width)
-k = np.linspace(0,2,size) #for K_RED/GREEN
-k2 = np.linspace(-1,1,size) #for K_ahl
-k3 = np.linspace(1,3,size) #for K_ahl
-
-bifu_plot(A0,par)
-plot_eigen(par)
-plot1D(par,endpoint=True)
-
-A0=np.ones(1)*10**-0.5
-
-ss=findss(A0,[0],par)
-
-G=np.ones(1)*ss[-1,:,2,0]
-R=np.ones(1)*ss[-1,:,2,1]
-A=np.ones(1)*ss[-1,:,2,2]
-
-av=simulation(G-10e-1,R,A,A0,0,par,dt,model="TSXLT",tt=time)
-
-plt.plot(av[:,0])
-#plt.plot(av[:,1])
-#plt.plot(av[:,2])
-plt.show()
-
-
-'''
-
-'''
-print("-----------------------------------------------")
-
-
-A0=np.ones(1)*10**0
-
-ss=findss(A0,[0],par)
-print(ss)
-
-G=np.ones(1)*ss[-1,:,0,0]
-R=np.ones(1)*ss[-1,:,0,1]
-A=np.ones(1)*ss[-1,:,0,2]
-
-print("SS: ")
-print(G,R,A)
-
-sse=getEigen(ss,A0,par)
-print("eigen: ")
-print( sse)
-
-g,r,a = model_TSXLT(G,R,A,A0,I,par)
-
-
-print("dx: ")
-print(g,r,a)
-
-av=simulation(G,R,A,A0,0,par,dt,model="TSXLT",tt=time)
-print("sim: " )
-print(av[-1,0],av[-1,1],av[-1,2])
-
-
-ss2=np.array([[[(av[-1,0][0],av[-1,1][0],av[-1,2][0])]]])
-sse2=getEigen(ss2,A0,par)
-
-print("eigen: ")
-
-print(sse2)
-
-print("------------------------------")
-
-print([av[-1,0][0]==G,av[-1,1][0]==R,av[-1,2][0]==A])
-
-plt.plot(av[:,0])
-#plt.plot(av[:,1])
-#plt.plot(av[:,2])
-plt.show()
-print("------------------------------")
-
-'''
-
-
-
 
 
 

@@ -6,9 +6,10 @@ from grow import *
 import pandas as pd
 import sys
 
+from scipy.stats import gaussian_kde
+import numpy as np
 
-
-def simulation(G,R,A,C,D,A0,IPTG,par,width,dx,time,dt,model = "TSXLT",tt=1,stationary=True,store=True):
+def simulation(G,R,A,C,D,A0,IPTG,par,width,dx,time,dt,model = "TSXLT",tt=1,noise=0,stationary=True,store=True,meq=None):
 	ti=1
 	#av=np.zeros((int(tt/dt),3,len(G)))
 
@@ -89,11 +90,29 @@ def simulation(G,R,A,C,D,A0,IPTG,par,width,dx,time,dt,model = "TSXLT",tt=1,stati
 				#3.2 dX/dt
 
 				g,r,rf,a =  meq.model_TSXLT(Gi,Ri,Rfi,Ai,A0,I,par)
-				Gi += dt*g*(Ci - stat_effect)
-				Ri += dt*r*(Ci - stat_effect)
+				#noise
+			
+
+
+				Gi += dt*g*(Ci - stat_effect) 
+				Ri += dt*r*(Ci - stat_effect)  
 				Rfi += dt*rf*(Ci - stat_effect)
 				#Ai += dt*a*(Ci - stat_effect)*Di/par_growth['max_density'] + adif
 				Ai += dt*a*(Ci - stat_effect) + adif
+				
+				if noise>0:
+					nnn=noise
+					gn= (np.random.normal(loc=0, scale=nnn, size=(width,width)))*(Ci - stat_effect)
+					rn= (np.random.normal(loc=0, scale=nnn, size=(width,width)))*(Ci - stat_effect)
+					#an= (np.random.normal(loc=0, scale=nnn, size=(width,width)))*(Ci - stat_effect)
+
+					Gi+=gn
+					Ri+=rn
+				#Ai+=an
+
+				Gi[Gi<0]=0
+				Ri[Ri<0]=0
+
 
 
 			elif model== "Turing":
@@ -179,7 +198,13 @@ def init_colony(values,width):
 
 
 
-    
+
+
+def getMAP(points):
+	kernel_estimate = gaussian_kde(points) # generate a continuous kernel density from the data
+	densities = kernel_estimate(points) # evaluate the data on the kernel
+	return points.T[np.argmax(densities)] # return the parameter set that is more dense
+
 
 
 
